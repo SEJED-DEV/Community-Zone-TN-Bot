@@ -39,17 +39,17 @@ module.exports = {
       ? new AttachmentBuilder(BANNER_PATH, { name: 'dinar.png' })
       : null;
 
-    const getEmoji = (key) => config.emojis[key] || '';
+    const { getSafeEmoji } = require('../../utils/emojiHelper');
 
     const embed = new EmbedBuilder()
       .setColor(0x6366F1)
-      .setAuthor({ name: `${getEmoji('wallet')} رصيد ${target.username}`, iconURL: target.displayAvatarURL({ dynamic: true }) })
+      .setAuthor({ name: `${getSafeEmoji('wallet', client, false)} رصيد ${target.username}`, iconURL: target.displayAvatarURL({ dynamic: true }) })
       .setThumbnail(target.displayAvatarURL({ dynamic: true }))
       .addFields(
-        { name: `${getEmoji('balance')} الرصيد الحالي`,    value: `\`${bal.toLocaleString()} DT\``,                       inline: true  },
-        { name: `${getEmoji('rank')} الترتيب`,           value: lbPos >= 0 ? `\`#${lbPos + 1}\`` : '`—`',                inline: true  },
-        { name: `${getEmoji('level')} مستوى XP`,          value: xpData ? `\`Level ${xpData.level}\`` : '`0`',            inline: true  },
-        { name: `${getEmoji('xp')} XP Boost النشط`,
+        { name: `${getSafeEmoji('balance', client, false)} الرصيد الحالي`,    value: `\`${bal.toLocaleString()} DT\``,                       inline: true  },
+        { name: `${getSafeEmoji('rank', client, false)} الترتيب`,           value: lbPos >= 0 ? `\`#${lbPos + 1}\`` : '`—`',                inline: true  },
+        { name: `${getSafeEmoji('level', client, false)} مستوى XP`,          value: xpData ? `\`Level ${xpData.level}\`` : '`0`',            inline: true  },
+        { name: `${getSafeEmoji('xp', client, false)} XP Boost النشط`,
           value: boost
             ? `\`×${boost.multiplier}\` — ${boost.name} (ينتهي <t:${Math.floor(boost.expiresAt / 1000)}:R>)`
             : '`لا يوجد Boost نشط`',

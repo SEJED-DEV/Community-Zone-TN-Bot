@@ -37,6 +37,19 @@ module.exports = {
         value = interaction.values[0];
       } else if (interaction.isButton()) {
         value = customId.replace('shop_buy_', '');
+        // Map shorthand button IDs to internal keys
+        const mapping = {
+          'boost': 'xp_boost_x2_24h',
+          'custom_name': 'custom_role_name',
+          'crate_common': 'crate_common',
+          'crate_rare': 'crate_rare',
+          'crate_epic': 'crate_epic',
+          'crate_legendary': 'crate_legendary',
+          'crate_mythic': 'crate_mythic',
+          'role_diamond': 'role_diamond',
+          'role_vip': 'role_vip'
+        };
+        value = mapping[value] || value;
       }
 
       if (!value) return;

@@ -62,7 +62,7 @@ module.exports = {
       .getAllMilestones()
       .find(m => m.level > userData.level);
 
-    const getEmoji = (key) => config.emojis[key] || '';
+    const { getSafeEmoji } = require('../../utils/emojiHelper');
 
     const embed = new EmbedBuilder()
       .setColor(0x8B5CF6)
@@ -73,17 +73,17 @@ module.exports = {
       .setThumbnail(target.displayAvatarURL({ dynamic: true, size: 256 }))
       .addFields(
         {
-          name: `${getEmoji('rank')} Server Rank`,
+          name: `${getSafeEmoji('rank', client, false)} Server Rank`,
           value: `**#${rank}**`,
           inline: true,
         },
         {
-          name: `${getEmoji('level')} Level`,
+          name: `${getSafeEmoji('level', client, false)} Level`,
           value: `**${userData.level}** / ${levelingManager.MAX_LEVEL}`,
           inline: true,
         },
         {
-          name: `${getEmoji('xp')} Total XP`,
+          name: `${getSafeEmoji('xp', client, false)} Total XP`,
           value: `**${userData.xp.toLocaleString()}** XP`,
           inline: true,
         },

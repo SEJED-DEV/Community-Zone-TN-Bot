@@ -22,12 +22,11 @@ module.exports = {
 
   async execute(client, interaction) {
     const channel = interaction.options.getChannel('channel') || interaction.channel;
-    const { emojis } = require('../../config');
-    const getEmoji = (key) => emojis[key] || '';
+    const { getSafeEmoji } = require('../../utils/emojiHelper');
 
     const panelEmbed = new EmbedBuilder()
       .setColor(0xEF4444)
-      .setTitle('🛡️ Moderation Command Center | مركز إدارة الرقابة')
+      .setTitle(`${getSafeEmoji('lock', client, false)} Moderation Command Center | مركز إدارة الرقابة`)
       .setDescription(
         'Quick access to server moderation tools. Actions taken here are logged automatically.\n' +
         'وصول سريع لأدوات الرقابة. جميع الإجراءات المتخذة هنا يتم تسجيلها تلقائياً.\n\n' +
@@ -44,15 +43,15 @@ module.exports = {
       .setTimestamp();
 
     const row1 = new ActionRowBuilder().addComponents(
-      new ButtonBuilder().setCustomId('admin_panel_ban').setLabel('Ban Member').setEmoji(getEmoji('kick')).setStyle(ButtonStyle.Danger),
-      new ButtonBuilder().setCustomId('admin_panel_kick').setLabel('Kick Member').setStyle(ButtonStyle.Danger),
-      new ButtonBuilder().setCustomId('admin_panel_timeout').setLabel('Timeout (Mute)').setStyle(ButtonStyle.Primary)
+      new ButtonBuilder().setCustomId('admin_panel_ban').setLabel('Ban').setEmoji(getSafeEmoji('kick', client, true)).setStyle(ButtonStyle.Danger),
+      new ButtonBuilder().setCustomId('admin_panel_kick').setLabel('Kick').setEmoji(getSafeEmoji('kick', client, true)).setStyle(ButtonStyle.Danger),
+      new ButtonBuilder().setCustomId('admin_panel_timeout').setLabel('Timeout').setEmoji(getSafeEmoji('loading', client, true)).setStyle(ButtonStyle.Primary)
     );
 
     const row2 = new ActionRowBuilder().addComponents(
-      new ButtonBuilder().setCustomId('admin_panel_unban').setLabel('Unban User').setEmoji(getEmoji('unlock')).setStyle(ButtonStyle.Success),
-      new ButtonBuilder().setCustomId('admin_panel_warn').setLabel('Warn Member').setEmoji(getEmoji('error')).setStyle(ButtonStyle.Secondary),
-      new ButtonBuilder().setCustomId('admin_panel_info').setLabel('User Info').setEmoji(getEmoji('info')).setStyle(ButtonStyle.Secondary)
+      new ButtonBuilder().setCustomId('admin_panel_unban').setLabel('Unban').setEmoji(getSafeEmoji('unlock', client, true)).setStyle(ButtonStyle.Success),
+      new ButtonBuilder().setCustomId('admin_panel_warn').setLabel('Warn').setEmoji(getSafeEmoji('error', client, true)).setStyle(ButtonStyle.Secondary),
+      new ButtonBuilder().setCustomId('admin_panel_info').setLabel('Info').setEmoji(getSafeEmoji('info', client, true)).setStyle(ButtonStyle.Secondary)
     );
 
     await channel.send({ embeds: [panelEmbed], components: [row1, row2] });

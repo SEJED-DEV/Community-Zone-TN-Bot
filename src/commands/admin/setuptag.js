@@ -22,12 +22,11 @@ module.exports = {
 
   async execute(client, interaction) {
     const channel = interaction.options.getChannel('channel') || interaction.channel;
-    const { emojis } = require('../../config');
-    const getEmoji = (key) => emojis[key] || '';
+    const { getSafeEmoji } = require('../../utils/emojiHelper');
 
     const panelEmbed = new EmbedBuilder()
       .setColor(0x6366F1)
-      .setTitle('🏷️ Server Tag Management | إدارة تاق السيرفر')
+      .setTitle(`${getSafeEmoji('rename', client, false)} Server Tag Management | إدارة تاق السيرفر`)
       .setDescription(
         'Use the buttons below to manage the automatic server tag for all members.\n' +
         'استخدم الأزرار أدناه لإدارة تاق السيرفر التلقائي لجميع الأعضاء.\n\n' +
@@ -43,14 +42,14 @@ module.exports = {
       .setTimestamp();
 
     const row1 = new ActionRowBuilder().addComponents(
-      new ButtonBuilder().setCustomId('tag_panel_set').setLabel('Change Tag').setEmoji(getEmoji('rename')).setStyle(ButtonStyle.Primary),
-      new ButtonBuilder().setCustomId('tag_panel_reset').setLabel('Reset').setStyle(ButtonStyle.Secondary),
-      new ButtonBuilder().setCustomId('tag_panel_disable').setLabel('Disable').setStyle(ButtonStyle.Danger)
+      new ButtonBuilder().setCustomId('tag_panel_set').setLabel('Change').setEmoji(getSafeEmoji('rename', client, true)).setStyle(ButtonStyle.Primary),
+      new ButtonBuilder().setCustomId('tag_panel_reset').setLabel('Reset').setEmoji(getSafeEmoji('lock', client, true)).setStyle(ButtonStyle.Secondary),
+      new ButtonBuilder().setCustomId('tag_panel_disable').setLabel('Disable').setEmoji(getSafeEmoji('deny', client, true)).setStyle(ButtonStyle.Danger)
     );
 
     const row2 = new ActionRowBuilder().addComponents(
-      new ButtonBuilder().setCustomId('tag_panel_apply_all').setLabel('Apply to All').setEmoji(getEmoji('success')).setStyle(ButtonStyle.Success),
-      new ButtonBuilder().setCustomId('tag_panel_remove_all').setLabel('Remove from All').setEmoji(getEmoji('deny')).setStyle(ButtonStyle.Danger)
+      new ButtonBuilder().setCustomId('tag_panel_apply_all').setLabel('Apply All').setEmoji(getSafeEmoji('success', client, true)).setStyle(ButtonStyle.Success),
+      new ButtonBuilder().setCustomId('tag_panel_remove_all').setLabel('Remove All').setEmoji(getSafeEmoji('deny', client, true)).setStyle(ButtonStyle.Danger)
     );
 
     await channel.send({ embeds: [panelEmbed], components: [row1, row2] });

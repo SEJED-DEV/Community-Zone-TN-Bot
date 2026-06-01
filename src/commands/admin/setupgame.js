@@ -16,12 +16,12 @@ module.exports = {
       )
       .setFooter({ text: 'Community Zone • Dev by sejed.dev & akaza_senior' });
 
-    const { emojis } = require('../../config');
+    const { getSafeEmoji } = require('../../utils/emojiHelper');
     const row = new ActionRowBuilder().addComponents(
       new ButtonBuilder()
         .setCustomId('mw_create_game_lobby')
         .setLabel('Create Lobby')
-        .setEmoji(emojis.casino || '🎮')
+        .setEmoji(getSafeEmoji('casino', client, true))
         .setStyle(ButtonStyle.Primary)
     );
 

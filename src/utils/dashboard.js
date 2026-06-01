@@ -1,44 +1,11 @@
 const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, AttachmentBuilder } = require('discord.js');
 const path = require('path');
 const config = require('../config');
+const { getSafeEmoji } = require('./emojiHelper');
 
 // Resolve the local banner image once at load time
 const BANNER_PATH = path.join(__dirname, '..', '..', 'dashboard.png');
 const BANNER_ATTACHMENT_NAME = 'dashboard.png';
-
-const FALLBACK_EMOJIS = {
-  rename: '📝',
-  limit: '👥',
-  lock: '🔒',
-  unlock: '🔓',
-  hide: '🙈',
-  show: '👀',
-  owner: '👑',
-  kick: '🦶',
-  allow: '✅',
-  deny: '❌',
-  mute: '🔇',
-  deafen: '🔕',
-  access: '🚪',
-  info: 'ℹ',
-  loading: '⏳',
-  success: '🎉',
-  error: '⚠'
-};
-
-function getSafeEmoji(key, client, forButton = true) {
-  const emojiStr = config.emojis[key];
-  if (!emojiStr) return FALLBACK_EMOJIS[key] || null;
-  const match = emojiStr.match(/<a?:([a-zA-Z0-9_]+):([0-9]+)>/);
-  if (match) {
-    const id = match[2];
-    if (client && client.emojis && client.emojis.cache.has(id)) {
-      return forButton ? id : emojiStr;
-    }
-    return FALLBACK_EMOJIS[key] || null;
-  }
-  return emojiStr;
-}
 
 /**
  * Utility to generate the dashboard panel for temporary text channels.

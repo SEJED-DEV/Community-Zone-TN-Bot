@@ -27,11 +27,11 @@ module.exports = {
       ? new AttachmentBuilder(BANNER_PATH, { name: 'dinar.png' })
       : null;
 
-    const getEmoji = (key) => config.emojis[key] || '';
+    const { getSafeEmoji } = require('../../utils/emojiHelper');
 
     const shopEmbed = new EmbedBuilder()
       .setColor(0x6366F1)
-      .setTitle(`${getEmoji('shop')} Dinar TN Central Shop | متجر دينار تونسي`)
+      .setTitle(`${getSafeEmoji('shop', client, false)} Dinar TN Central Shop | متجر دينار تونسي`)
       .setDescription(
         `Welcome to the central shop! Use your **Dinar TN (DT)** to buy exclusive rewards.\n` +
         `أهلاً بك في متجر السيرفر الموحد! استخدم عملتك لشراء المكافآت الحصرية.\n\n` +
@@ -69,10 +69,10 @@ module.exports = {
 
     // Row 3: Boosts & Roles
     const row3 = new ActionRowBuilder().addComponents(
-      new ButtonBuilder().setCustomId('shop_buy_boost').setLabel('XP Boost x2').setEmoji(getEmoji('xp')).setStyle(ButtonStyle.Success),
-      new ButtonBuilder().setCustomId('shop_buy_custom_name').setLabel('Custom Role').setStyle(ButtonStyle.Primary),
-      new ButtonBuilder().setCustomId('shop_buy_role_diamond').setLabel('Diamond').setStyle(ButtonStyle.Primary),
-      new ButtonBuilder().setCustomId('shop_buy_role_vip').setLabel('VIP').setStyle(ButtonStyle.Primary)
+      new ButtonBuilder().setCustomId('shop_buy_boost').setLabel('XP Boost x2').setEmoji(getSafeEmoji('xp', client, true)).setStyle(ButtonStyle.Success),
+      new ButtonBuilder().setCustomId('shop_buy_custom_name').setLabel('Custom Role').setEmoji(getSafeEmoji('owner', client, true)).setStyle(ButtonStyle.Primary),
+      new ButtonBuilder().setCustomId('shop_buy_role_diamond').setLabel('Diamond').setEmoji(getSafeEmoji('dot', client, true)).setStyle(ButtonStyle.Primary),
+      new ButtonBuilder().setCustomId('shop_buy_role_vip').setLabel('VIP').setEmoji(getSafeEmoji('owner', client, true)).setStyle(ButtonStyle.Primary)
     );
 
     await interaction.editReply({

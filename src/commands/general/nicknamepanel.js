@@ -22,11 +22,11 @@ module.exports = {
 
   async execute(client, interaction) {
     const channel = interaction.options.getChannel('channel');
-    const { emojis } = require('../../config');
+    const { getSafeEmoji } = require('../../utils/emojiHelper');
 
     const embed = new EmbedBuilder()
       .setColor(0x8B5CF6)
-      .setTitle('🪪 Identity Management | تغيير الاسم المستعار')
+      .setTitle(`${getSafeEmoji('member', client, false)} Identity Management | تغيير الاسم المستعار`)
       .setDescription(
         'Click the button below to change your nickname in this server.\n' +
         'اضغط على الزر أدناه لتغيير اسمك المستعار في هذا السيرفر.\n\n' +
@@ -41,7 +41,7 @@ module.exports = {
       new ButtonBuilder()
         .setCustomId('nickname_panel_btn')
         .setLabel('Change Nickname')
-        .setEmoji(emojis.rename || '📝')
+        .setEmoji(getSafeEmoji('rename', client, true))
         .setStyle(ButtonStyle.Primary)
     );
 

@@ -23,13 +23,12 @@ module.exports = {
   async execute(client, interaction) {
     await interaction.deferReply({ ephemeral: true });
     const channel = interaction.options.getChannel('channel');
-    const { emojis } = require('../../config');
-    const getEmoji = (key) => emojis[key] || '';
+    const { getSafeEmoji } = require('../../utils/emojiHelper');
 
     // ─── PANEL 1: SHOP ──────────────────────────────────────────
     const shopEmbed = new EmbedBuilder()
       .setColor(0x6366F1)
-      .setTitle(`${getEmoji('shop')} Dinar TN Central Shop | متجر دينار تونسي`)
+      .setTitle(`${getSafeEmoji('shop', client, false)} Dinar TN Central Shop | متجر دينار تونسي`)
       .setDescription('Purchase crates and exclusive roles below!')
       .setFooter({ text: 'Community Zone • Economy System' });
 
@@ -45,19 +44,19 @@ module.exports = {
     );
 
     const rowOther = new ActionRowBuilder().addComponents(
-      new ButtonBuilder().setCustomId('shop_buy_boost').setLabel('XP Boost ×2').setEmoji(getEmoji('xp')).setStyle(ButtonStyle.Success),
-      new ButtonBuilder().setCustomId('shop_buy_custom_name').setLabel('Custom Role Name').setStyle(ButtonStyle.Secondary)
+      new ButtonBuilder().setCustomId('shop_buy_boost').setLabel('XP Boost ×2').setEmoji(getSafeEmoji('xp', client, true)).setStyle(ButtonStyle.Success),
+      new ButtonBuilder().setCustomId('shop_buy_custom_name').setLabel('Custom Role Name').setEmoji(getSafeEmoji('owner', client, true)).setStyle(ButtonStyle.Secondary)
     );
 
     // ─── PANEL 2: CASINO ────────────────────────────────────────
     const casinoEmbed = new EmbedBuilder()
       .setColor(0xF59E0B)
-      .setTitle(`${getEmoji('casino')} Dinar TN Casino | كازينو دينار تونسي`)
+      .setTitle(`${getSafeEmoji('casino', client, false)} Dinar TN Casino | كازينو دينار تونسي`)
       .setDescription('Gamble your DT for a chance to win huge XP boosts!')
       .setFooter({ text: 'Community Zone • Luck & Games' });
 
     const rowCasino = new ActionRowBuilder().addComponents(
-      new ButtonBuilder().setCustomId('casino_spin_boost').setLabel('Spin XP Boost Wheel').setEmoji(getEmoji('casino')).setStyle(ButtonStyle.Danger)
+      new ButtonBuilder().setCustomId('casino_spin_boost').setLabel('Spin XP Boost Wheel').setEmoji(getSafeEmoji('casino', client, true)).setStyle(ButtonStyle.Danger)
     );
 
     await channel.send({ embeds: [shopEmbed], components: [rowCrates, rowRoles, rowOther] });
