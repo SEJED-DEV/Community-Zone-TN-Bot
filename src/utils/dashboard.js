@@ -164,22 +164,22 @@ class DashboardGenerator {
     const row3 = new ActionRowBuilder().addComponents(
       new ButtonBuilder()
         .setCustomId('btn-allow')
-        .setLabel('Whitelist User/Role')
+        .setLabel('Whitelist')
         .setEmoji(getSafeEmoji('allow', activeClient, true))
         .setStyle(ButtonStyle.Success),
       new ButtonBuilder()
         .setCustomId('btn-deny')
-        .setLabel('Revoke Access')
+        .setLabel('Revoke')
         .setEmoji(getSafeEmoji('deny', activeClient, true))
         .setStyle(ButtonStyle.Danger),
       new ButtonBuilder()
         .setCustomId('btn-transfer')
-        .setLabel('Transfer Ownership')
+        .setLabel('Transfer')
         .setEmoji(getSafeEmoji('owner', activeClient, true))
         .setStyle(ButtonStyle.Success),
       new ButtonBuilder()
         .setCustomId('btn-deafen')
-        .setLabel('Deafen/Undeafen')
+        .setLabel('Deafen')
         .setEmoji(getSafeEmoji('deafen', activeClient, true))
         .setStyle(ButtonStyle.Primary)
     );

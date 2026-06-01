@@ -19,7 +19,7 @@ module.exports = {
 ║   ╚═════╝ ╚═════╝    ╚═╝       ╚═════╝ ╚═╝  ╚═══╝╚══════╝      ║
 ║                                                                  ║
 ║         🌐  Community Zone TN — Discord Bot                      ║
-║         ⚙️   Dev by Akaza_senior                                 ║
+║         ⚙️   Dev by sejed.dev & akaza_senior                     ║
 ║         ✅  Bot is ONLINE and ready to serve!                    ║
 ║                                                                  ║
 ╚══════════════════════════════════════════════════════════════════╝
@@ -29,8 +29,10 @@ module.exports = {
     // Dynamic presence update representing premium status
     client.user.setPresence({
       activities: [{
-        name: '🔒 Dev by Akaza_senior',
-        type: ActivityType.Watching
+        name: 'Developed by sejed.dev & akaza_senior',
+        type: ActivityType.Custom,
+        state: 'Developed by sejed.dev & akaza_senior',
+        emoji: config.emojis.developer
       }],
       status: 'online'
     });

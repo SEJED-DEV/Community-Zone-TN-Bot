@@ -2,18 +2,20 @@ const {
   SlashCommandBuilder,
   EmbedBuilder,
   ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
   AttachmentBuilder,
-  StringSelectMenuBuilder,
 } = require('discord.js');
 const path = require('path');
 const economy = require('../../managers/economyManager');
+const config = require('../../config');
 
 const BANNER_PATH = path.join(__dirname, '..', '..', '..', 'dinari danous.png');
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('shop')
-    .setDescription('🏪 افتح متجر Dinar TN الشامل واشترِ مكافآت حصرية.'),
+    .setDescription('🏪 Central Server Shop | متجر السيرفر الموحد'),
 
   async execute(client, interaction) {
     await interaction.deferReply({ ephemeral: false });
@@ -25,70 +27,58 @@ module.exports = {
       ? new AttachmentBuilder(BANNER_PATH, { name: 'dinar.png' })
       : null;
 
+    const getEmoji = (key) => config.emojis[key] || '';
+
     const shopEmbed = new EmbedBuilder()
       .setColor(0x6366F1)
-      .setTitle('🏪 متجر Dinar TN الشامل')
+      .setTitle(`${getEmoji('shop')} Dinar TN Central Shop | متجر دينار تونسي`)
       .setDescription(
-        `أهلاً بك في متجر السيرفر الموحد! يمكنك شراء المكافآت، الصناديق، والرتب الحصرية باستخدام عملتك **Dinar TN (DT)**.\n\n` +
-        `💰 **رصيدك الحالي:** \`${bal.toLocaleString()} DT\`\n\n` +
-        `──────────────────────────────\n` +
-        `⚡ **1. مضاعفات الـ XP (XP Boosts):**\n` +
-        `• **XP Boost ×2 (24h)** — \`1,000 DT\`\n` +
-        `> يضاعف جميع نقاط الخبرة المكتسبة في الشات والرومات الصوتية لمدة 24 ساعة.\n\n` +
-        `✨ **2. المكافآت المخصصة (Custom Rewards):**\n` +
-        `• **Custom Role Name** — \`1,000 DT\`\n` +
-        `> اطلب اسم رتبة مخصص بالكامل من المشرفين والمسؤولين.\n\n` +
-        `📦 **3. صناديق مكافآت الـ XP (Loot Boxes):**\n` +
-        `• **Common Crate** (25 DT) | **Rare Crate** (75 DT) | **Epic Crate** (150 DT)\n` +
-        `• **Legendary Crate** (300 DT) | **Mythic Crate** (750 DT)\n` +
-        `> افتح الصناديق واربح كميات ضخمة من نقاط الـ XP بشكل فوري ومباشر!\n\n` +
-        `👑 **4. الرتب الصوتية الحصرية (Exclusive Voice Roles):**\n` +
-        `• 💎 **Diamond** (2,500 DT) | 👑 **VIP** (10,000 DT)\n` +
-        `> تمنحك دخول قنوات ورومات صوتية حصرية، وصلاحية VIP لنقل الأعضاء بين الغرف!`
+        `Welcome to the central shop! Use your **Dinar TN (DT)** to buy exclusive rewards.\n` +
+        `أهلاً بك في متجر السيرفر الموحد! استخدم عملتك لشراء المكافآت الحصرية.\n\n` +
+        `💰 **Your Balance:** \`${bal.toLocaleString()} DT\``
+      )
+      .addFields(
+        {
+          name: '📦 XP Loot Boxes',
+          value: '• **Common** (25 DT)\n• **Rare** (75 DT)\n• **Epic** (150 DT)\n• **Legendary** (300 DT)\n• **Mythic** (750 DT)',
+          inline: true
+        },
+        {
+          name: '👑 Roles & Boosts',
+          value: '• **XP Boost x2** (1,000 DT)\n• **Custom Role** (1,000 DT)\n• **Diamond Role** (2,500 DT)\n• **VIP Role** (10,000 DT)',
+          inline: true
+        }
       )
       .setTimestamp()
-      .setFooter({ text: 'Community Zone • Dinar TN Economy' });
+      .setFooter({ text: 'Community Zone • Economy System' });
 
     if (attachment) shopEmbed.setImage('attachment://dinar.png');
 
-    // Build the 3 Action Rows (All in One big panel)
-    const rowCrates = new ActionRowBuilder().addComponents(
-      new StringSelectMenuBuilder()
-        .setCustomId('shop_buy_crate')
-        .setPlaceholder('📦 شراء وفتح صناديق الـ XP...')
-        .addOptions([
-          { label: '📦 Common Crate — 25 DT',     value: 'crate_common',    description: 'يمنح 500 – 1,000 XP' },
-          { label: '🎁 Rare Crate — 75 DT',       value: 'crate_rare',      description: 'يمنح 1,500 – 3,000 XP' },
-          { label: '💎 Epic Crate — 150 DT',      value: 'crate_epic',      description: 'يمنح 4,000 – 8,000 XP' },
-          { label: '🔥 Legendary Crate — 300 DT', value: 'crate_legendary', description: 'يمنح 10,000 – 20,000 XP' },
-          { label: '👑 Mythic Crate — 750 DT',    value: 'crate_mythic',    description: 'يمنح 30,000 – 60,000 XP' },
-        ])
+    // Row 1: Crates (Common, Rare, Epic)
+    const row1 = new ActionRowBuilder().addComponents(
+      new ButtonBuilder().setCustomId('shop_buy_crate_common').setLabel('Common').setEmoji('📦').setStyle(ButtonStyle.Secondary),
+      new ButtonBuilder().setCustomId('shop_buy_crate_rare').setLabel('Rare').setEmoji('🎁').setStyle(ButtonStyle.Secondary),
+      new ButtonBuilder().setCustomId('shop_buy_crate_epic').setLabel('Epic').setEmoji('💎').setStyle(ButtonStyle.Secondary)
     );
 
-    const rowRoles = new ActionRowBuilder().addComponents(
-      new StringSelectMenuBuilder()
-        .setCustomId('shop_buy_role')
-        .setPlaceholder('👑 شراء الرتب الصوتية الحصرية...')
-        .addOptions([
-          { label: '💎 Diamond Role — 2,500 DT', value: 'role_diamond' },
-          { label: '👑 VIP Role — 10,000 DT',   value: 'role_vip', description: 'رومات VIP ونقل الأعضاء' },
-        ])
+    // Row 2: Crates (Legendary, Mythic)
+    const row2 = new ActionRowBuilder().addComponents(
+      new ButtonBuilder().setCustomId('shop_buy_crate_legendary').setLabel('Legendary').setEmoji('🔥').setStyle(ButtonStyle.Secondary),
+      new ButtonBuilder().setCustomId('shop_buy_crate_mythic').setLabel('Mythic').setEmoji('👑').setStyle(ButtonStyle.Secondary)
     );
 
-    const rowOther = new ActionRowBuilder().addComponents(
-      new StringSelectMenuBuilder()
-        .setCustomId('shop_buy_other')
-        .setPlaceholder('⚡ شراء الـ XP Boosts والرتب المخصصة...')
-        .addOptions([
-          { label: '⚡ XP Boost ×2 (24h) — 1,000 DT', value: 'xp_boost_x2_24h', description: 'مضاعفة XP لمدة 24 ساعة' },
-          { label: '✨ Custom Role Name — 1,000 DT', value: 'custom_role_name', description: 'اسم رتبة مخصص بالكامل' },
-        ])
+    // Row 3: Boosts & Roles
+    const row3 = new ActionRowBuilder().addComponents(
+      new ButtonBuilder().setCustomId('shop_buy_boost').setLabel('XP Boost x2').setEmoji(getEmoji('xp')).setStyle(ButtonStyle.Success),
+      new ButtonBuilder().setCustomId('shop_buy_custom_name').setLabel('Custom Role').setStyle(ButtonStyle.Primary),
+      new ButtonBuilder().setCustomId('shop_buy_role_diamond').setLabel('Diamond').setStyle(ButtonStyle.Primary),
+      new ButtonBuilder().setCustomId('shop_buy_role_vip').setLabel('VIP').setStyle(ButtonStyle.Primary)
     );
 
     await interaction.editReply({
       embeds: [shopEmbed],
       files: attachment ? [attachment] : [],
-      components: [rowCrates, rowRoles, rowOther],
+      components: [row1, row2, row3],
     });
   },
 };

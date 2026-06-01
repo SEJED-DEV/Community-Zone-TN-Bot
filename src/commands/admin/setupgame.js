@@ -3,36 +3,28 @@ const { SlashCommandBuilder, PermissionFlagsBits, EmbedBuilder, ActionRowBuilder
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('setupgame')
-    .setDescription('Deploy the Rock-Paper-Scissors (RPS) Game Arena panel.')
-    .setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels),
+    .setDescription('🎮 Send the Mr. White game setup panel.')
+    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
   async execute(client, interaction) {
-    await interaction.deferReply({ ephemeral: true });
-
     const embed = new EmbedBuilder()
-      .setColor(0xF59E0B) // Amber
-      .setTitle('🎮 Rock-Paper-Scissors Arena | ساحة حجرة - ورقة - مقص')
+      .setColor(0x8B5CF6)
+      .setTitle('🎮 Mr. White Voice Edition')
       .setDescription(
-        '⚔️ **Welcome to the RPS Arena!**\n' +
-        'Challenge another member in a best-of-3 rounds match and bet your XP!\n\n' +
-        '🏆 **أهلاً بكم في ساحة التحدي!**\n' +
-        'تحدّ عضواً آخر في مباراة من 3 جولات وراهن بنقاط الخبرة الخاصة بك!\n\n' +
-        '• **Min Bet:** `100 XP`\n' +
-        '• **Max Bet:** Your current XP\n' +
-        '• **Rule:** Winner takes the bet XP, loser loses it!'
+        'Click the button below to create a new game lobby!\n' +
+        'اضغط على الزر أدناه لإنشاء لوبي جديد للعبة!'
       )
-      .setFooter({ text: 'Community Zone • Game Arena' })
-      .setTimestamp();
+      .setFooter({ text: 'Community Zone • Dev by sejed.dev & akaza_senior' });
 
+    const { emojis } = require('../../config');
     const row = new ActionRowBuilder().addComponents(
       new ButtonBuilder()
-        .setCustomId('rps_create_game')
-        .setLabel('⚔️ Create Challenge | إنشاء تحدي')
+        .setCustomId('mw_create_game_lobby')
+        .setLabel('Create Lobby')
+        .setEmoji(emojis.casino || '🎮')
         .setStyle(ButtonStyle.Primary)
     );
 
-    await interaction.channel.send({ embeds: [embed], components: [row] });
-
-    return interaction.editReply({ content: '✅ Game Arena Panel successfully deployed to this channel!' });
+    await interaction.reply({ embeds: [embed], components: [row] });
   }
 };

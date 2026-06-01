@@ -7,99 +7,45 @@ const {
   PermissionFlagsBits,
   ChannelType,
 } = require('discord.js');
-const settingsManager = require('../../utils/settingsManager');
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('nicknamepanel')
-    .setDescription('Configure and deploy the Nickname Change panel.')
+    .setDescription('Deploy the Server Nickname Change Panel.')
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
-    .addSubcommand(sub =>
-      sub
-        .setName('setup')
-        .setDescription('Send the Nickname Change panel to a channel.')
-        .addChannelOption(opt =>
-          opt
-            .setName('channel')
-            .setDescription('The channel to send the nickname panel to.')
-            .addChannelTypes(ChannelType.GuildText)
-            .setRequired(true)
-        )
-    )
-    .addSubcommand(sub =>
-      sub
-        .setName('status')
-        .setDescription('Show where the nickname panel is currently configured.')
+    .addChannelOption(opt =>
+      opt.setName('channel')
+        .setDescription('The channel to send the Nickname Panel to.')
+        .addChannelTypes(ChannelType.GuildText)
+        .setRequired(true)
     ),
 
   async execute(client, interaction) {
-    await interaction.deferReply({ ephemeral: true });
+    const channel = interaction.options.getChannel('channel');
+    const { emojis } = require('../../config');
 
-    const sub = interaction.options.getSubcommand();
+    const embed = new EmbedBuilder()
+      .setColor(0x8B5CF6)
+      .setTitle('🪪 Identity Management | تغيير الاسم المستعار')
+      .setDescription(
+        'Click the button below to change your nickname in this server.\n' +
+        'اضغط على الزر أدناه لتغيير اسمك المستعار في هذا السيرفر.\n\n' +
+        '**⚠️ Rules:**\n' +
+        '• Do not use offensive names.\n' +
+        '• Admin tag will be applied automatically.'
+      )
+      .setFooter({ text: 'Community Zone • Identity System' })
+      .setTimestamp();
 
-    // ── /nicknamepanel setup ────────────────────────────────
-    if (sub === 'setup') {
-      const channel = interaction.options.getChannel('channel');
+    const row = new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
+        .setCustomId('nickname_panel_btn')
+        .setLabel('Change Nickname')
+        .setEmoji(emojis.rename || '📝')
+        .setStyle(ButtonStyle.Primary)
+    );
 
-      // Save panel channel to settings
-      settingsManager.saveSettings({ nicknamePanelChannelId: channel.id });
-
-      // Build the panel embed
-      const panelEmbed = new EmbedBuilder()
-        .setColor(0x5865F2)
-        .setTitle('🪪 𝐂𝐡𝐚𝐧𝐠𝐞 𝐍𝐢𝐜𝐤𝐧𝐚𝐦𝐞')
-        .setDescription(
-          '> Want to change how your name appears in the server?\n\n' +
-          '**Click the button below** to set your custom nickname.\n\n' +
-          '```\n• Your nickname must be 1 – 32 characters long.\n' +
-          '• Nicknames must follow server rules.\n' +
-          '• Admins can reset your nickname at any time.\n```'
-        )
-        .setFooter({ text: 'Community Zone • Nickname System' })
-        .setTimestamp();
-
-      // Build the button
-      const row = new ActionRowBuilder().addComponents(
-        new ButtonBuilder()
-          .setCustomId('nickname_panel_btn')
-          .setLabel('🪪 Change Nickname')
-          .setStyle(ButtonStyle.Primary)
-      );
-
-      // Send to target channel
-      await channel.send({ embeds: [panelEmbed], components: [row] });
-
-      return interaction.editReply({
-        embeds: [
-          new EmbedBuilder()
-            .setColor(0x10B981)
-            .setTitle('✅ Nickname Panel Deployed')
-            .setDescription(`The Nickname Change panel has been sent to ${channel}.`)
-            .setFooter({ text: 'Community Zone • Nickname System' })
-            .setTimestamp(),
-        ],
-      });
-    }
-
-    // ── /nicknamepanel status ────────────────────────────────
-    if (sub === 'status') {
-      const settings = settingsManager.loadSettings();
-      const channelId = settings.nicknamePanelChannelId;
-
-      return interaction.editReply({
-        embeds: [
-          new EmbedBuilder()
-            .setColor(0x6366F1)
-            .setTitle('⚙️ Nickname Panel Configuration')
-            .addFields({
-              name: '📣 Panel Channel',
-              value: channelId ? `<#${channelId}>` : '`Not set` — run `/nicknamepanel setup` first.',
-              inline: false,
-            })
-            .setFooter({ text: 'Community Zone • Nickname System' })
-            .setTimestamp(),
-        ],
-      });
-    }
+    await channel.send({ embeds: [embed], components: [row] });
+    return interaction.reply({ content: `✅ Nickname panel deployed in ${channel}.`, ephemeral: true });
   },
 };
