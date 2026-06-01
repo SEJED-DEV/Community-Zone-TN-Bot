@@ -15,8 +15,8 @@ class EmbedGenerator {
       .setColor(color)
       .setTimestamp()
       .setFooter({
-        text: 'Community Zone • Dev by Akaza_senior',
-        iconURL: 'https://cdn.discordapp.com/emojis/1150495818987413554.webp?size=128&quality=lossless' // Sleek default or generic premium logo
+        text: 'Community Zone • Dev by sejed.dev & akaza_senior',
+        iconURL: 'https://cdn.discordapp.com/emojis/1150495818987413554.webp?size=128&quality=lossless'
       });
   }
 

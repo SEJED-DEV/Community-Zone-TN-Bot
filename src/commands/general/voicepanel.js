@@ -43,9 +43,12 @@ module.exports = {
       // Save panel channel to settings
       settingsManager.saveSettings({ voicePanelChannelId: channel.id });
 
+      const { emojis } = require('../../config');
+      const getEmoji = (key) => emojis[key] || '';
+
       const panelEmbed = new EmbedBuilder()
         .setColor(0x8B5CF6)
-        .setTitle('👑 Temporary Voice Room Panel | لوحة التحكم بالروم المؤقت')
+        .setTitle(`${getEmoji('owner')} Temporary Voice Room Panel | لوحة التحكم بالروم المؤقت`)
         .setDescription(
           '> Click the buttons below to manage your temporary voice channel.\n' +
           '> اضغط على الأزرار أدناه للتحكم في قناتك الصوتية المؤقتة.\n\n' +
@@ -72,28 +75,28 @@ module.exports = {
 
       // Row 1: Rename, Limit, Mute, Kick, Info
       const row1 = new ActionRowBuilder().addComponents(
-        new ButtonBuilder().setCustomId('btn-rename').setLabel('📝 Rename').setStyle(ButtonStyle.Primary),
-        new ButtonBuilder().setCustomId('btn-limit').setLabel('👥 Limit').setStyle(ButtonStyle.Primary),
-        new ButtonBuilder().setCustomId('btn-mute').setLabel('🎙️ Mute/Unmute').setStyle(ButtonStyle.Primary),
-        new ButtonBuilder().setCustomId('btn-kick').setLabel('🚷 Kick').setStyle(ButtonStyle.Danger),
-        new ButtonBuilder().setCustomId('btn-info').setLabel('ℹ️ Room Info').setStyle(ButtonStyle.Secondary)
+        new ButtonBuilder().setCustomId('btn-rename').setLabel('Rename').setEmoji(getEmoji('rename')).setStyle(ButtonStyle.Primary),
+        new ButtonBuilder().setCustomId('btn-limit').setLabel('Limit').setEmoji(getEmoji('limit')).setStyle(ButtonStyle.Primary),
+        new ButtonBuilder().setCustomId('btn-mute').setLabel('Mute/Unmute').setEmoji(getEmoji('mute')).setStyle(ButtonStyle.Primary),
+        new ButtonBuilder().setCustomId('btn-kick').setLabel('Kick').setEmoji(getEmoji('kick')).setStyle(ButtonStyle.Danger),
+        new ButtonBuilder().setCustomId('btn-info').setLabel('Room Info').setEmoji(getEmoji('info')).setStyle(ButtonStyle.Secondary)
       );
 
       // Row 2: Lock, Unlock, Hide, Show, Access
       const row2 = new ActionRowBuilder().addComponents(
-        new ButtonBuilder().setCustomId('btn-lock').setLabel('🔒 Lock').setStyle(ButtonStyle.Danger),
-        new ButtonBuilder().setCustomId('btn-unlock').setLabel('🔓 Unlock').setStyle(ButtonStyle.Success),
-        new ButtonBuilder().setCustomId('btn-hide').setLabel('👁️ Hide').setStyle(ButtonStyle.Danger),
-        new ButtonBuilder().setCustomId('btn-show').setLabel('👀 Show').setStyle(ButtonStyle.Success),
-        new ButtonBuilder().setCustomId('btn-access').setLabel('🚪 Toggle Public').setStyle(ButtonStyle.Secondary)
+        new ButtonBuilder().setCustomId('btn-lock').setLabel('Lock').setEmoji(getEmoji('lock')).setStyle(ButtonStyle.Danger),
+        new ButtonBuilder().setCustomId('btn-unlock').setLabel('Unlock').setEmoji(getEmoji('unlock')).setStyle(ButtonStyle.Success),
+        new ButtonBuilder().setCustomId('btn-hide').setLabel('Hide').setEmoji(getEmoji('hide')).setStyle(ButtonStyle.Danger),
+        new ButtonBuilder().setCustomId('btn-show').setLabel('Show').setEmoji(getEmoji('show')).setStyle(ButtonStyle.Success),
+        new ButtonBuilder().setCustomId('btn-access').setLabel('Toggle Public').setEmoji(getEmoji('access')).setStyle(ButtonStyle.Secondary)
       );
 
       // Row 3: Allow, Deny, Transfer, Deafen
       const row3 = new ActionRowBuilder().addComponents(
-        new ButtonBuilder().setCustomId('btn-allow').setLabel('✅ Whitelist').setStyle(ButtonStyle.Success),
-        new ButtonBuilder().setCustomId('btn-deny').setLabel('❌ Revoke Access').setStyle(ButtonStyle.Danger),
-        new ButtonBuilder().setCustomId('btn-transfer').setLabel('👑 Transfer Owner').setStyle(ButtonStyle.Success),
-        new ButtonBuilder().setCustomId('btn-deafen').setLabel('🔕 Deafen').setStyle(ButtonStyle.Primary)
+        new ButtonBuilder().setCustomId('btn-allow').setLabel('Whitelist').setEmoji(getEmoji('allow')).setStyle(ButtonStyle.Success),
+        new ButtonBuilder().setCustomId('btn-deny').setLabel('Revoke').setEmoji(getEmoji('deny')).setStyle(ButtonStyle.Danger),
+        new ButtonBuilder().setCustomId('btn-transfer').setLabel('Transfer').setEmoji(getEmoji('owner')).setStyle(ButtonStyle.Success),
+        new ButtonBuilder().setCustomId('btn-deafen').setLabel('Deafen').setEmoji(getEmoji('deafen')).setStyle(ButtonStyle.Primary)
       );
 
       await channel.send({ embeds: [panelEmbed], components: [row1, row2, row3] });

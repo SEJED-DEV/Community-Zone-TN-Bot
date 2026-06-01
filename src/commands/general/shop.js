@@ -7,6 +7,7 @@ const {
 } = require('discord.js');
 const path = require('path');
 const economy = require('../../managers/economyManager');
+const config = require('../../config');
 
 const BANNER_PATH = path.join(__dirname, '..', '..', '..', 'dinari danous.png');
 
@@ -25,9 +26,11 @@ module.exports = {
       ? new AttachmentBuilder(BANNER_PATH, { name: 'dinar.png' })
       : null;
 
+    const getEmoji = (key) => config.emojis[key] || '';
+
     const shopEmbed = new EmbedBuilder()
       .setColor(0x6366F1)
-      .setTitle('🏪 متجر Dinar TN الشامل')
+      .setTitle(`${getEmoji('shop')} متجر Dinar TN الشامل`)
       .setDescription(
         `أهلاً بك في متجر السيرفر الموحد! يمكنك شراء المكافآت، الصناديق، والرتب الحصرية باستخدام عملتك **Dinar TN (DT)**.\n\n` +
         `💰 **رصيدك الحالي:** \`${bal.toLocaleString()} DT\`\n\n` +
@@ -55,7 +58,7 @@ module.exports = {
     const rowCrates = new ActionRowBuilder().addComponents(
       new StringSelectMenuBuilder()
         .setCustomId('shop_buy_crate')
-        .setPlaceholder('📦 شراء وفتح صناديق الـ XP...')
+        .setPlaceholder('شراء وفتح صناديق الـ XP...')
         .addOptions([
           { label: '📦 Common Crate — 25 DT',     value: 'crate_common',    description: 'يمنح 500 – 1,000 XP' },
           { label: '🎁 Rare Crate — 75 DT',       value: 'crate_rare',      description: 'يمنح 1,500 – 3,000 XP' },
