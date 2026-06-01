@@ -5,15 +5,23 @@ const {
   ButtonBuilder,
   ButtonStyle,
   PermissionFlagsBits,
+  ChannelType,
 } = require('discord.js');
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('setuptag')
     .setDescription('Configure and deploy the Server Tag Management Panel.')
-    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
+    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
+    .addChannelOption(opt =>
+      opt.setName('channel')
+        .setDescription('The channel to send the Tag Management Panel to.')
+        .addChannelTypes(ChannelType.GuildText)
+        .setRequired(false)
+    ),
 
   async execute(client, interaction) {
+    const channel = interaction.options.getChannel('channel') || interaction.channel;
     const { emojis } = require('../../config');
     const getEmoji = (key) => emojis[key] || '';
 
@@ -35,16 +43,22 @@ module.exports = {
       .setTimestamp();
 
     const row1 = new ActionRowBuilder().addComponents(
-      new ButtonBuilder().setCustomId('tag_panel_set').setLabel('Change Server Tag').setEmoji(getEmoji('rename')).setStyle(ButtonStyle.Primary),
-      new ButtonBuilder().setCustomId('tag_panel_reset').setLabel('Reset to Default').setStyle(ButtonStyle.Secondary),
-      new ButtonBuilder().setCustomId('tag_panel_disable').setLabel('Disable Tag').setStyle(ButtonStyle.Danger)
+      new ButtonBuilder().setCustomId('tag_panel_set').setLabel('Change Tag').setEmoji(getEmoji('rename')).setStyle(ButtonStyle.Primary),
+      new ButtonBuilder().setCustomId('tag_panel_reset').setLabel('Reset').setStyle(ButtonStyle.Secondary),
+      new ButtonBuilder().setCustomId('tag_panel_disable').setLabel('Disable').setStyle(ButtonStyle.Danger)
     );
 
     const row2 = new ActionRowBuilder().addComponents(
-      new ButtonBuilder().setCustomId('tag_panel_apply_all').setLabel('Apply to All Members').setEmoji(getEmoji('success')).setStyle(ButtonStyle.Success),
-      new ButtonBuilder().setCustomId('tag_panel_remove_all').setLabel('Remove from All Members').setEmoji(getEmoji('deny')).setStyle(ButtonStyle.Danger)
+      new ButtonBuilder().setCustomId('tag_panel_apply_all').setLabel('Apply to All').setEmoji(getEmoji('success')).setStyle(ButtonStyle.Success),
+      new ButtonBuilder().setCustomId('tag_panel_remove_all').setLabel('Remove from All').setEmoji(getEmoji('deny')).setStyle(ButtonStyle.Danger)
     );
 
-    await interaction.reply({ embeds: [panelEmbed], components: [row1, row2] });
+    await channel.send({ embeds: [panelEmbed], components: [row1, row2] });
+
+    if (channel.id !== interaction.channelId) {
+      await interaction.reply({ content: `✅ Tag management panel successfully deployed in ${channel}.`, ephemeral: true });
+    } else {
+      await interaction.reply({ content: `✅ Tag management panel successfully deployed.`, ephemeral: true });
+    }
   },
 };

@@ -5,15 +5,23 @@ const {
   ButtonBuilder,
   ButtonStyle,
   PermissionFlagsBits,
+  ChannelType,
 } = require('discord.js');
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('adminpanel')
     .setDescription('Deploy the Professional Moderation Control Panel.')
-    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
+    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
+    .addChannelOption(opt =>
+      opt.setName('channel')
+        .setDescription('The channel to send the Moderation Panel to.')
+        .addChannelTypes(ChannelType.GuildText)
+        .setRequired(false)
+    ),
 
   async execute(client, interaction) {
+    const channel = interaction.options.getChannel('channel') || interaction.channel;
     const { emojis } = require('../../config');
     const getEmoji = (key) => emojis[key] || '';
 
@@ -47,6 +55,12 @@ module.exports = {
       new ButtonBuilder().setCustomId('admin_panel_info').setLabel('User Info').setEmoji(getEmoji('info')).setStyle(ButtonStyle.Secondary)
     );
 
-    await interaction.reply({ embeds: [panelEmbed], components: [row1, row2] });
+    await channel.send({ embeds: [panelEmbed], components: [row1, row2] });
+
+    if (channel.id !== interaction.channelId) {
+      await interaction.reply({ content: `✅ Admin moderation panel successfully deployed in ${channel}.`, ephemeral: true });
+    } else {
+      await interaction.reply({ content: `✅ Admin moderation panel successfully deployed.`, ephemeral: true });
+    }
   },
 };

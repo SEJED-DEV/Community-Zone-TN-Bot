@@ -30,9 +30,17 @@ module.exports = {
     const { customId, guild, user, guildId } = interaction;
     if (!customId) return;
 
-    // ─── 1. Persistent Shop Dropdowns ─────────────────────────
-    if (interaction.isStringSelectMenu() && customId.startsWith('shop_buy_')) {
-      const value = interaction.values[0];
+    // ─── 1. Persistent Shop Interactions (Buttons & Dropdowns) ─────────────────────────
+    if (customId.startsWith('shop_buy_')) {
+      let value;
+      if (interaction.isStringSelectMenu()) {
+        value = interaction.values[0];
+      } else if (interaction.isButton()) {
+        value = customId.replace('shop_buy_', '');
+      }
+
+      if (!value) return;
+
       const item = economy.SHOP_ITEMS[value];
       if (!item) return;
 
