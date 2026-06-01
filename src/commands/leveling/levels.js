@@ -7,6 +7,7 @@ const {
   ComponentType,
 } = require('discord.js');
 const levelingManager = require('../../managers/levelingManager');
+const config = require('../../config');
 
 const ROLES_PER_PAGE = 10;
 
@@ -70,16 +71,19 @@ module.exports = {
         .setTimestamp();
     };
 
+    const { getSafeEmoji } = require('../../utils/emojiHelper');
     const buildButtons = (page) => {
       const row = new ActionRowBuilder().addComponents(
         new ButtonBuilder()
           .setCustomId('levels_prev')
-          .setLabel('◀ Previous')
+          .setLabel('Previous')
+          .setEmoji(getSafeEmoji('arrow_left', client, true))
           .setStyle(ButtonStyle.Secondary)
           .setDisabled(page === 0),
         new ButtonBuilder()
           .setCustomId('levels_next')
-          .setLabel('Next ▶')
+          .setLabel('Next')
+          .setEmoji(getSafeEmoji('arrow', client, true))
           .setStyle(ButtonStyle.Primary)
           .setDisabled(page >= totalPages - 1)
       );

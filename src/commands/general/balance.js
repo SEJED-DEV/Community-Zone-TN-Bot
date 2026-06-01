@@ -2,6 +2,7 @@ const { SlashCommandBuilder, EmbedBuilder, AttachmentBuilder } = require('discor
 const path = require('path');
 const economy = require('../../managers/economyManager');
 const levelingManager = require('../../managers/levelingManager');
+const config = require('../../config');
 
 const BANNER_PATH = path.join(__dirname, '..', '..', '..', 'dinari danous.png');
 
@@ -38,15 +39,17 @@ module.exports = {
       ? new AttachmentBuilder(BANNER_PATH, { name: 'dinar.png' })
       : null;
 
+    const { getSafeEmoji } = require('../../utils/emojiHelper');
+
     const embed = new EmbedBuilder()
       .setColor(0x6366F1)
-      .setAuthor({ name: `💰 رصيد ${target.username}`, iconURL: target.displayAvatarURL({ dynamic: true }) })
+      .setAuthor({ name: `${getSafeEmoji('wallet', client, false)} رصيد ${target.username}`, iconURL: target.displayAvatarURL({ dynamic: true }) })
       .setThumbnail(target.displayAvatarURL({ dynamic: true }))
       .addFields(
-        { name: '💰 الرصيد الحالي',    value: `\`${bal.toLocaleString()} DT\``,                       inline: true  },
-        { name: '🏆 الترتيب',           value: lbPos >= 0 ? `\`#${lbPos + 1}\`` : '`—`',                inline: true  },
-        { name: '⭐ مستوى XP',          value: xpData ? `\`Level ${xpData.level}\`` : '`0`',            inline: true  },
-        { name: '⚡ XP Boost النشط',
+        { name: `${getSafeEmoji('balance', client, false)} الرصيد الحالي`,    value: `\`${bal.toLocaleString()} DT\``,                       inline: true  },
+        { name: `${getSafeEmoji('rank', client, false)} الترتيب`,           value: lbPos >= 0 ? `\`#${lbPos + 1}\`` : '`—`',                inline: true  },
+        { name: `${getSafeEmoji('level', client, false)} مستوى XP`,          value: xpData ? `\`Level ${xpData.level}\`` : '`0`',            inline: true  },
+        { name: `${getSafeEmoji('xp', client, false)} XP Boost النشط`,
           value: boost
             ? `\`×${boost.multiplier}\` — ${boost.name} (ينتهي <t:${Math.floor(boost.expiresAt / 1000)}:R>)`
             : '`لا يوجد Boost نشط`',

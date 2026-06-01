@@ -34,7 +34,7 @@ class Logger {
         .setColor(color)
         .addFields(fields)
         .setTimestamp()
-        .setFooter({ text: 'Community Zone • Dev by Akaza_senior' });
+        .setFooter({ text: 'Community Zone • Dev by sejed.dev & akaza_senior' });
 
       if (thumbnailUrl) {
         embed.setThumbnail(thumbnailUrl);

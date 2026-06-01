@@ -5,76 +5,59 @@ const {
   ButtonBuilder,
   ButtonStyle,
   PermissionFlagsBits,
-  ModalBuilder,
-  TextInputBuilder,
-  TextInputStyle,
+  ChannelType,
 } = require('discord.js');
-const { getPrefix, setPrefix, applyPrefix } = require('../../utils/prefixManager');
-const settingsManager = require('../../utils/settingsManager');
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('setuptag')
-    .setDescription('Open the server tag/prefix management panel. (Admin only)')
-    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
+    .setDescription('Configure and deploy the Server Tag Management Panel.')
+    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
+    .addChannelOption(opt =>
+      opt.setName('channel')
+        .setDescription('The channel to send the Tag Management Panel to.')
+        .addChannelTypes(ChannelType.GuildText)
+        .setRequired(false)
+    ),
 
   async execute(client, interaction) {
-    const currentTag = getPrefix();
+    const channel = interaction.options.getChannel('channel') || interaction.channel;
+    const { getSafeEmoji } = require('../../utils/emojiHelper');
 
-    const embed = new EmbedBuilder()
+    const panelEmbed = new EmbedBuilder()
       .setColor(0x6366F1)
-      .setTitle('🏷️ Server Tag Management Panel')
+      .setTitle(`${getSafeEmoji('rename', client, false)} Server Tag Management | إدارة تاق السيرفر`)
       .setDescription(
-        `Configure the **server tag/prefix** that is automatically applied to every member's nickname.\n\n` +
-        `When a member joins or changes their nickname, the tag is **automatically re-applied**.\n\n` +
-        `**Current Tag:**\n` +
-        `\`\`\`${currentTag}\`\`\`\n` +
-        `**Preview:**\n` +
-        `\`${currentTag}username\``
+        'Use the buttons below to manage the automatic server tag for all members.\n' +
+        'استخدم الأزرار أدناه لإدارة تاق السيرفر التلقائي لجميع الأعضاء.\n\n' +
+        '**⚙️ Configuration:**\n' +
+        '• `🏷️ Change Tag` — Set a new prefix for all nicknames.\n' +
+        '• `🔄 Reset` — Revert to the default server tag.\n' +
+        '• `🚫 Disable` — Stop applying tags to new members.\n\n' +
+        '**🚀 Bulk Actions:**\n' +
+        '• `✅ Apply to All` — Force-apply the current tag to every member.\n' +
+        '• `🗑️ Remove from All` — Strip the tag from all current nicknames.'
       )
-      .addFields(
-        {
-          name: '⚙️ How it works',
-          value:
-            '• Tag is applied to **new members** on join\n' +
-            '• Tag is **re-enforced** if someone removes it\n' +
-            '• Use `/applyprefixall` to apply to **all existing members**\n' +
-            '• The tag is saved permanently in bot settings',
-          inline: false,
-        }
-      )
-      .setFooter({ text: 'Community Zone • Tag Management' })
+      .setFooter({ text: 'Community Zone • Tag System' })
       .setTimestamp();
 
     const row1 = new ActionRowBuilder().addComponents(
-      new ButtonBuilder()
-        .setCustomId('tag_panel_set')
-        .setLabel('✏️ Change Tag')
-        .setStyle(ButtonStyle.Primary),
-      new ButtonBuilder()
-        .setCustomId('tag_panel_reset')
-        .setLabel('🔄 Reset to Default')
-        .setStyle(ButtonStyle.Secondary),
-      new ButtonBuilder()
-        .setCustomId('tag_panel_apply_all')
-        .setLabel('👥 Apply to All')
-        .setStyle(ButtonStyle.Success),
+      new ButtonBuilder().setCustomId('tag_panel_set').setLabel('Change').setEmoji(getSafeEmoji('rename', client, true)).setStyle(ButtonStyle.Primary),
+      new ButtonBuilder().setCustomId('tag_panel_reset').setLabel('Reset').setEmoji(getSafeEmoji('lock', client, true)).setStyle(ButtonStyle.Secondary),
+      new ButtonBuilder().setCustomId('tag_panel_disable').setLabel('Disable').setEmoji(getSafeEmoji('deny', client, true)).setStyle(ButtonStyle.Danger)
     );
 
     const row2 = new ActionRowBuilder().addComponents(
-      new ButtonBuilder()
-        .setCustomId('tag_panel_remove_all')
-        .setLabel('🗑️ Remove Tag from All')
-        .setStyle(ButtonStyle.Danger),
-      new ButtonBuilder()
-        .setCustomId('tag_panel_disable')
-        .setLabel('🚫 Disable Tag')
-        .setStyle(ButtonStyle.Danger),
+      new ButtonBuilder().setCustomId('tag_panel_apply_all').setLabel('Apply All').setEmoji(getSafeEmoji('success', client, true)).setStyle(ButtonStyle.Success),
+      new ButtonBuilder().setCustomId('tag_panel_remove_all').setLabel('Remove All').setEmoji(getSafeEmoji('deny', client, true)).setStyle(ButtonStyle.Danger)
     );
 
-    await interaction.reply({
-      embeds: [embed],
-      components: [row1, row2],
-    });
+    await channel.send({ embeds: [panelEmbed], components: [row1, row2] });
+
+    if (channel.id !== interaction.channelId) {
+      await interaction.reply({ content: `✅ Tag management panel successfully deployed in ${channel}.`, ephemeral: true });
+    } else {
+      await interaction.reply({ content: `✅ Tag management panel successfully deployed.`, ephemeral: true });
+    }
   },
 };

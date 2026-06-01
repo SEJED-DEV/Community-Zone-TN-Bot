@@ -39,23 +39,31 @@ function buildNowPlayingEmbed(track, queueLength) {
 /**
  * Builds the music control buttons row.
  */
+const config = require('../config');
+
 function buildControlButtons() {
+  const getEmoji = (key) => config.emojis[key] || null;
+
   return new ActionRowBuilder().addComponents(
     new ButtonBuilder()
       .setCustomId('music_pause_resume')
-      .setLabel('⏸ Pause / Resume')
+      .setLabel('Pause / Resume')
+      .setEmoji(getEmoji('music_pause'))
       .setStyle(ButtonStyle.Secondary),
     new ButtonBuilder()
       .setCustomId('music_skip')
-      .setLabel('⏭ Skip')
+      .setLabel('Skip')
+      .setEmoji(getEmoji('music_skip'))
       .setStyle(ButtonStyle.Primary),
     new ButtonBuilder()
       .setCustomId('music_stop')
-      .setLabel('⏹ Stop')
+      .setLabel('Stop')
+      .setEmoji(getEmoji('music_stop'))
       .setStyle(ButtonStyle.Danger),
     new ButtonBuilder()
       .setCustomId('music_queue')
-      .setLabel('📋 Queue')
+      .setLabel('Queue')
+      .setEmoji(getEmoji('music_queue'))
       .setStyle(ButtonStyle.Secondary),
   );
 }

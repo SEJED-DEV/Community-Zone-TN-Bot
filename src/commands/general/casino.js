@@ -9,6 +9,7 @@ const {
 const path = require('path');
 const economy = require('../../managers/economyManager');
 const { CASINO_ROLE_PRICE } = require('../../managers/economyManager');
+const config = require('../../config');
 
 const BANNER_PATH = path.join(__dirname, '..', '..', '..', 'dinari danous.png');
 
@@ -25,9 +26,11 @@ function buildCasinoHome(guildId, userId) {
     return `⏳ ${h}h ${m}m`;
   }
 
+  const { getSafeEmoji } = require('../../utils/emojiHelper');
+
   return new EmbedBuilder()
     .setColor(0xF59E0B)
-    .setTitle('🎰 كازينو دينار تونسي — عجلة الـ XP Boost')
+    .setTitle(`${getSafeEmoji('casino', null, false)} كازينو دينار تونسي — عجلة الـ XP Boost`)
     .setDescription(
       `> 💰 **رصيدك:** \`${bal.toLocaleString()} DT\`\n\n` +
       `**⚡ XP Boost Gamble** — \`${CASINO_ROLE_PRICE} DT\`\n` +
@@ -60,10 +63,12 @@ module.exports = {
     const homeEmbed = buildCasinoHome(guildId, user.id);
     if (attachment) homeEmbed.setImage('attachment://dinar.png');
 
+    const { getSafeEmoji } = require('../../utils/emojiHelper');
     const row = new ActionRowBuilder().addComponents(
       new ButtonBuilder()
         .setCustomId('casino_spin_boost')
-        .setLabel(`⚡ XP Boost Gamble — ${CASINO_ROLE_PRICE} DT`)
+        .setLabel(`XP Boost Gamble — ${CASINO_ROLE_PRICE} DT`)
+        .setEmoji(getSafeEmoji('xp', client, true))
         .setStyle(ButtonStyle.Primary),
     );
 

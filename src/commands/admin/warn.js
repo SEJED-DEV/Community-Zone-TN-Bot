@@ -13,6 +13,7 @@ const config = require('../../config');
 const logger = require('../../utils/logger');
 const embedGenerator = require('../../utils/embedGenerator');
 const warnManager = require('../../utils/warnManager');
+const { getSafeEmoji } = require('../../utils/emojiHelper');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -52,9 +53,10 @@ module.exports = {
 
     const guildId = interaction.guildId;
     const targetMember = await interaction.guild.members.fetch(targetUser.id).catch(() => null);
+    const isBanned = await interaction.guild.bans.fetch(targetUser.id).then(() => true).catch(() => false);
 
     // Build the function that creates the status embed and buttons
-    function generatePanel(guildId, targetUser, targetMember) {
+    async function generatePanel(guildId, targetUser, targetMember, isBanned) {
       const warns = warnManager.getUserWarnings(guildId, targetUser.id);
       
       let warnColor;
@@ -79,14 +81,24 @@ module.exports = {
       }
 
       const embed = new EmbedBuilder()
-        .setTitle(`🛡️ Moderation Panel: ${targetUser.username}`)
-        .setColor(warnColor)
+        .setTitle(`${getSafeEmoji('owner', client, false)} Moderation Panel: ${targetUser.username}`)
+        .setColor(isBanned ? config.colors.danger : warnColor)
         .setThumbnail(targetUser.displayAvatarURL({ dynamic: true }))
         .addFields(
-          { name: '👤 Member', value: `<@${targetUser.id}> (\`${targetUser.tag}\`)`, inline: true },
+          { name: `${getSafeEmoji('member', client, false)} Member`, value: `<@${targetUser.id}> (\`${targetUser.tag}\`)`, inline: true },
           { name: '🆔 ID', value: `\`${targetUser.id}\``, inline: true },
-          { name: '⚠️ Status', value: `**${warnEmoji}**`, inline: true }
+          { name: `${getSafeEmoji('warning', client, false)} Status`, value: isBanned ? '🔨 **Permanently Banned**' : `**${warnEmoji}**`, inline: true }
         );
+
+      if (isBanned) {
+        const banInfo = await interaction.guild.bans.fetch(targetUser.id).catch(() => null);
+        if (banInfo) {
+          embed.addFields({
+            name: '🔨 Ban Reason',
+            value: `\`\`\`${banInfo.reason || 'No reason provided'}\`\`\``
+          });
+        }
+      }
 
       if (warns.history.length > 0) {
         const historyList = warns.history.map((h, i) => 
@@ -111,22 +123,26 @@ module.exports = {
       const row1 = new ActionRowBuilder().addComponents(
         new ButtonBuilder()
           .setCustomId(`warn_btn_1`)
-          .setLabel('⚠️ Warn 1')
+          .setLabel('Warn 1')
+          .setEmoji(getSafeEmoji('warning', client, true))
           .setStyle(ButtonStyle.Primary)
           .setDisabled(warns.warnCount >= 1),
         new ButtonBuilder()
           .setCustomId(`warn_btn_2`)
-          .setLabel('🟠 Warn 2')
+          .setLabel('Warn 2')
+          .setEmoji(getSafeEmoji('warning', client, true))
           .setStyle(ButtonStyle.Primary)
           .setDisabled(warns.warnCount >= 2),
         new ButtonBuilder()
           .setCustomId(`warn_btn_3`)
-          .setLabel('🔴 Warn 3')
+          .setLabel('Warn 3')
+          .setEmoji(getSafeEmoji('warning', client, true))
           .setStyle(ButtonStyle.Danger)
           .setDisabled(warns.warnCount >= 3),
         new ButtonBuilder()
           .setCustomId(`warn_btn_reset`)
-          .setLabel('Reset Warnings')
+          .setLabel('Reset')
+          .setEmoji(getSafeEmoji('lock', client, true))
           .setStyle(ButtonStyle.Secondary)
           .setDisabled(warns.warnCount === 0)
       );
@@ -134,25 +150,28 @@ module.exports = {
       const row2 = new ActionRowBuilder().addComponents(
         new ButtonBuilder()
           .setCustomId(`warn_btn_timeout`)
-          .setLabel('⏳ Timeout')
+          .setLabel('Timeout')
+          .setEmoji(getSafeEmoji('loading', client, true))
           .setStyle(ButtonStyle.Primary)
           .setDisabled(!targetMember),
         new ButtonBuilder()
           .setCustomId(`warn_btn_kick`)
-          .setLabel('🦶 Kick')
+          .setLabel('Kick')
+          .setEmoji(getSafeEmoji('kick', client, true))
           .setStyle(ButtonStyle.Danger)
           .setDisabled(!targetMember || (targetMember && !targetMember.kickable)),
         new ButtonBuilder()
-          .setCustomId(`warn_btn_ban`)
-          .setLabel('🔨 Ban')
-          .setStyle(ButtonStyle.Danger)
+          .setCustomId(isBanned ? 'warn_btn_unban' : 'warn_btn_ban')
+          .setLabel(isBanned ? 'Unban' : 'Ban')
+          .setEmoji(isBanned ? getSafeEmoji('unlock', client, true) : getSafeEmoji('kick', client, true))
+          .setStyle(isBanned ? ButtonStyle.Success : ButtonStyle.Danger)
           .setDisabled(!!(targetMember && !targetMember.bannable))
       );
 
       return { embeds: [embed], components: [row1, row2] };
     }
 
-    const panelData = generatePanel(guildId, targetUser, targetMember);
+    const panelData = await generatePanel(guildId, targetUser, targetMember, isBanned);
     const message = await interaction.reply({
       ...panelData,
       ephemeral: true,
@@ -236,7 +255,7 @@ module.exports = {
           ]);
 
           // Update panel
-          const updatedPanel = generatePanel(guildId, targetUser, targetMember);
+          const updatedPanel = await generatePanel(guildId, targetUser, targetMember, isBanned);
           await interaction.editReply(updatedPanel);
         }
       }
@@ -307,7 +326,7 @@ module.exports = {
           ]);
 
           // Update panel
-          const updatedPanel = generatePanel(guildId, targetUser, targetMember);
+          const updatedPanel = await generatePanel(guildId, targetUser, targetMember, isBanned);
           await interaction.editReply(updatedPanel);
         }
       }
@@ -414,7 +433,7 @@ module.exports = {
             });
 
             // Update panel
-            const updatedPanel = generatePanel(guildId, targetUser, targetMember);
+            const updatedPanel = await generatePanel(guildId, targetUser, targetMember, isBanned);
             await interaction.editReply(updatedPanel);
           } catch (err) {
             console.error('[WARN TIMEOUT ERROR]', err);
@@ -513,12 +532,67 @@ module.exports = {
             });
 
             // Update panel (force update targetMember to null since kicked)
-            const updatedPanel = generatePanel(guildId, targetUser, null);
+            const updatedPanel = await generatePanel(guildId, targetUser, null, isBanned);
             await interaction.editReply(updatedPanel);
           } catch (err) {
             console.error('[WARN KICK ERROR]', err);
             await interaction.followUp({
               embeds: [embedGenerator.error(`Failed to kick member: ${err.message}`)],
+              ephemeral: true
+            });
+          }
+        }
+      }
+
+      // Handle Unban click
+      else if (customId === 'warn_btn_unban') {
+        const modal = new ModalBuilder()
+          .setCustomId('warn_modal_unban')
+          .setTitle(`Unban ${targetUser.username}`);
+
+        const reasonInput = new TextInputBuilder()
+          .setCustomId('reason')
+          .setLabel('Reason for unban')
+          .setStyle(TextInputStyle.Paragraph)
+          .setRequired(true)
+          .setMaxLength(512)
+          .setPlaceholder('Enter the unban reason...');
+
+        const row = new ActionRowBuilder().addComponents(reasonInput);
+        modal.addComponents(row);
+
+        await btnInteraction.showModal(modal);
+
+        const submitted = await btnInteraction.awaitModalSubmit({
+          filter: i => i.customId === 'warn_modal_unban' && i.user.id === interaction.user.id,
+          time: 60000
+        }).catch(() => null);
+
+        if (submitted) {
+          await submitted.deferUpdate();
+          const reason = submitted.fields.getTextInputValue('reason');
+
+          try {
+            await interaction.guild.members.unban(targetUser.id, `Unbanned by ${interaction.user.tag}: ${reason}`);
+
+            await logger.success(client, '🔓 Member Unbanned', [
+              { name: 'Target', value: `${targetUser.tag} (\`${targetUser.id}\`)` },
+              { name: 'Moderator', value: `${interaction.user.tag}` },
+              { name: 'Reason', value: reason }
+            ]);
+
+            await interaction.followUp({
+              embeds: [embedGenerator.success(`Unbanned **${targetUser.tag}**.\nReason: \`${reason}\``)],
+              ephemeral: true
+            });
+
+            // Update panel
+            const updatedPanel = await generatePanel(guildId, targetUser, targetMember, false);
+            await interaction.editReply(updatedPanel);
+          } catch (err) {
+            console.error('[WARN UNBAN ERROR]', err);
+            await interaction.followUp({
+              embeds: [embedGenerator.error(`Failed to unban member: ${err.message}`)],
               ephemeral: true
             });
           }
@@ -618,7 +692,7 @@ module.exports = {
             });
 
             // Update panel (force update targetMember to null since banned)
-            const updatedPanel = generatePanel(guildId, targetUser, null);
+            const updatedPanel = await generatePanel(guildId, targetUser, null, true);
             await interaction.editReply(updatedPanel);
           } catch (err) {
             console.error('[WARN BAN ERROR]', err);

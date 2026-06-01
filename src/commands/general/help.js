@@ -11,7 +11,7 @@ module.exports = {
 
     // ── Page 1: Voice & Logs ───────────────────────────────
     const voiceEmbed = embedGenerator.info(
-      `Welcome to **Community Zone Bot** (Dev by **Akaza_senior**)! This premium utility handles voice automation, audit logging, and a full XP leveling system.\n\n` +
+      `Welcome to **Community Zone Bot** (Dev by **sejed.dev & akaza_senior**)! This premium utility handles voice automation, audit logging, and a full XP leveling system.\n\n` +
       `**🔊 How Temporary Rooms Work:**\n` +
       `1. Join the designated **➕ Create Voice** channel.\n` +
       `2. The bot immediately creates a private voice channel and moves you in.\n` +
@@ -67,7 +67,7 @@ module.exports = {
         `Lvl 35 🎯 · Lvl 40 👑 *(cycle repeats every 8 milestones up to Lvl 245)*\n` +
         `**Lvl 250 🌟** — The ultimate legendary tier!`
       )
-      .setFooter({ text: 'Community Zone • Dev by Akaza_senior' })
+      .setFooter({ text: 'Community Zone • Dev by sejed.dev & akaza_senior' })
       .setTimestamp();
 
     await interaction.editReply({ embeds: [voiceEmbed] });
@@ -102,7 +102,7 @@ module.exports = {
         `• ✅ **YouTube Playlists** — Paste a full playlist URL to queue everything.\n` +
         `• ✅ **YouTube Search** — Just type the song name and we'll find it!`
       )
-      .setFooter({ text: 'Community Zone • Dev by Akaza_senior' })
+      .setFooter({ text: 'Community Zone • Dev by sejed.dev & akaza_senior' })
       .setTimestamp();
 
     await interaction.followUp({ embeds: [musicEmbed], ephemeral: true });

@@ -201,6 +201,16 @@ module.exports = {
     // ==========================================
     if (interaction.isButton() && customId.startsWith('mw_')) {
       const guildId = interaction.guildId;
+
+      // Handle Panel Lobby Creation
+      if (customId === 'mw_create_game_lobby') {
+        const command = client.commands.get('mrwhite');
+        if (command) {
+          // Fake interaction options to trigger 'play' subcommand
+          interaction.options.getSubcommand = () => 'play';
+          return command.execute(client, interaction);
+        }
+      }
       const game = mrWhiteManager.getGame(guildId);
 
       // Handle Join / Leave before checking for game existence since they create the context

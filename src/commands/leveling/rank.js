@@ -4,6 +4,7 @@ const {
   PermissionFlagsBits,
 } = require('discord.js');
 const levelingManager = require('../../managers/levelingManager');
+const config = require('../../config');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -61,6 +62,8 @@ module.exports = {
       .getAllMilestones()
       .find(m => m.level > userData.level);
 
+    const { getSafeEmoji } = require('../../utils/emojiHelper');
+
     const embed = new EmbedBuilder()
       .setColor(0x8B5CF6)
       .setAuthor({
@@ -70,17 +73,17 @@ module.exports = {
       .setThumbnail(target.displayAvatarURL({ dynamic: true, size: 256 }))
       .addFields(
         {
-          name: '🏅 Server Rank',
+          name: `${getSafeEmoji('rank', client, false)} Server Rank`,
           value: `**#${rank}**`,
           inline: true,
         },
         {
-          name: '🎯 Level',
+          name: `${getSafeEmoji('level', client, false)} Level`,
           value: `**${userData.level}** / ${levelingManager.MAX_LEVEL}`,
           inline: true,
         },
         {
-          name: '⭐ Total XP',
+          name: `${getSafeEmoji('xp', client, false)} Total XP`,
           value: `**${userData.xp.toLocaleString()}** XP`,
           inline: true,
         },

@@ -30,7 +30,7 @@ module.exports = {
   banAnnouncementChannelId: savedSettings.banAnnouncementChannelId || process.env.BAN_ANNOUNCEMENT_CHANNEL_ID || null,
   kickChannelId: savedSettings.kickChannelId || null,
   timeoutChannelId: savedSettings.timeoutChannelId || null,
-  warnChannelId: savedSettings.warnChannelId || null,
+  warnChannelId: savedSettings.warnChannelId || '1510778134205829120',
   levelUpChannelId: savedSettings.levelUpChannelId || (process.env.LEVEL_UP_CHANNEL_ID && process.env.LEVEL_UP_CHANNEL_ID !== 'YOUR_LEVEL_UP_CHANNEL_ID_HERE' ? process.env.LEVEL_UP_CHANNEL_ID : null),
   levelingEnabled: savedSettings.levelingEnabled !== false,
   nicknamePanelChannelId: savedSettings.nicknamePanelChannelId || null,
