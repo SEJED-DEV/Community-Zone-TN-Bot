@@ -1,0 +1,29 @@
+# ── Environment & Secrets ─────────────────────────────────────────
+.env
+.env.*
+
+# ── Database & User Data ──────────────────────────────────────────
+data/
+
+# ── YouTube / Cookie Files ────────────────────────────────────────
+cookies.txt
+www.youtube.com_cookies.txt
+*.cookie
+*.cookies
+
+# ── Play-DL internal cookie store ────────────────────────────────
+.data/
+
+# ── Node Dependencies ─────────────────────────────────────────────
+node_modules/
+
+# ── Archives / Backups ────────────────────────────────────────────
+*.rar
+*.zip
+*.tar
+*.gz
+
+# ── OS & Editor noise ────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+*.log
