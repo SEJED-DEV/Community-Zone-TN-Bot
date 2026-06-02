@@ -38,6 +38,7 @@ module.exports = {
   mrWhiteStatsChannelId: savedSettings.mrWhiteStatsChannelId || null,
   trackerLogChannelId: savedSettings.trackerLogChannelId || null,
   confessChannelId: savedSettings.confessChannelId || null,
+  confessLogChannelId: '1511242621505372301',
 
   // Premium visual customisation (Glassmorphic & Vibrant Palettes)
   colors: {

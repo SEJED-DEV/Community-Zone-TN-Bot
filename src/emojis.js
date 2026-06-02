@@ -50,5 +50,13 @@ module.exports = {
   online: '<:online:123456789012345678>',
   developer: '<:developer:123456789012345678>',
   member: '<:member:123456789012345678>',
-  server: '<:server:123456789012345678>'
+  server: '<:server:123456789012345678>',
+
+  // Confession System
+  confess_love: '<:love:123456789012345678>',
+  confess_sad: '<:sad:123456789012345678>',
+  confess_haha: '<:haha:123456789012345678>',
+  confess_angry: '<:angry:123456789012345678>',
+  confess_wow: '<:wow:123456789012345678>',
+  confess_comment: '<:comment:123456789012345678>'
 };
