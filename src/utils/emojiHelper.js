@@ -63,19 +63,12 @@ function getSafeEmoji(key, client, forButton = true) {
     if (client && client.emojis && client.emojis.cache.has(id)) {
       return forButton ? id : emojiStr;
     }
-    // If we're strictly using placeholders and they are invalid IDs,
-    // Discord API will throw. So we check if the ID is real.
-    // If it's the placeholder ID '123456789012345678', we definitely fallback.
-    if (id === '123456789012345678') {
-      return FALLBACKS[key] || '❓';
-    }
-
-    // If no client to check, we assume it's valid unless it's the placeholder
+    // User specifically requested to use placeholders if real emojis aren't available.
     return forButton ? id : emojiStr;
   }
 
-  // Not a custom emoji format, return as is (Unicode or text)
-  return emojiStr || FALLBACKS[key] || '❓';
+  // Not a custom emoji format, return as is
+  return emojiStr || '❓';
 }
 
 module.exports = {

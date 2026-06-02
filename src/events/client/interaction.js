@@ -3011,12 +3011,14 @@ module.exports = {
 
       await interaction.deferReply({ ephemeral: true });
 
+      const { getSafeEmoji } = require('../../utils/emojiHelper');
+
       // Re-check cooldown (modal submit is a separate interaction)
       const last = confessCmd.cooldowns.get(userId) || 0;
       if (now - last < confessCmd.COOLDOWN_MS) {
         const remaining = Math.ceil((confessCmd.COOLDOWN_MS - (now - last)) / 1000);
         return interaction.editReply({
-          content: `⏳ الرجاء الانتظار **${remaining} ثانية** قبل إرسال رسالة جديدة.`,
+          content: `${getSafeEmoji('warning', client, false)} الرجاء الانتظار **${remaining} ثانية** قبل إرسال رسالة جديدة.`,
         });
       }
 
@@ -3026,7 +3028,7 @@ module.exports = {
       for (const pattern of confessCmd.BLOCKED_PATTERNS) {
         if (pattern.test(rawMessage)) {
           return interaction.editReply({
-            content: '🚫 **رسالتك تحتوي على رابط أو إعلان ممنوع.**\n*(Your message contains a blocked link or advertisement.)*',
+            content: `${getSafeEmoji('error', client, false)} **رسالتك تحتوي على رابط أو إعلان ممنوع.**\n*(Your message contains a blocked link or advertisement.)*`,
           });
         }
       }
@@ -3035,14 +3037,14 @@ module.exports = {
       const confessChannelId = config.confessChannelId;
       if (!confessChannelId) {
         return interaction.editReply({
-          content: '❌ لم يتم إعداد قناة الرسائل المجهولة بعد. الرجاء التواصل مع الإدارة.\n*(Anonymous messages channel not configured yet.)*',
+          content: `${getSafeEmoji('error', client, false)} لم يتم إعداد قناة الرسائل المجهولة بعد. الرجاء التواصل مع الإدارة.\n*(Anonymous messages channel not configured yet.)*`,
         });
       }
 
       const confessChannel = await client.channels.fetch(confessChannelId).catch(() => null);
       if (!confessChannel || !confessChannel.isTextBased()) {
         return interaction.editReply({
-          content: '❌ تعذّر الوصول إلى قناة الرسائل المجهولة. الرجاء التواصل مع الإدارة.',
+          content: `${getSafeEmoji('error', client, false)} تعذّر الوصول إلى قناة الرسائل المجهولة. الرجاء التواصل مع الإدارة.`,
         });
       }
 
@@ -3052,23 +3054,23 @@ module.exports = {
 
       // ── Build public confession embed ─────────────────────────────────────────
       const publicEmbed = new EmbedBuilder()
-        .setColor(0x8B5CF6)
-        .setTitle(`💌 Anonymous Message #${confessionId}`)
-        .setDescription(`> ${rawMessage}`)
+        .setColor(config.colors.accent || 0x8B5CF6)
+        .setTitle(`Anonymous Message #${confessionId}`)
+        .setDescription(`${getSafeEmoji('info', client, false)} > ${rawMessage}`)
         .setFooter({ text: `Community Zone TN • رسالة مجهولة #${confessionId}` })
         .setTimestamp();
 
       // ── Reaction buttons ──────────────────────────────────────────────────────
       const reactionRow1 = new ActionRowBuilder().addComponents(
-        new ButtonBuilder().setCustomId(`confess_react_love_${confessionId}`).setLabel('❤️ Love').setStyle(ButtonStyle.Secondary),
-        new ButtonBuilder().setCustomId(`confess_react_sad_${confessionId}`).setLabel('😢 Sad').setStyle(ButtonStyle.Secondary),
-        new ButtonBuilder().setCustomId(`confess_react_haha_${confessionId}`).setLabel('😂 Haha').setStyle(ButtonStyle.Secondary),
-        new ButtonBuilder().setCustomId(`confess_react_angry_${confessionId}`).setLabel('😡 Angry').setStyle(ButtonStyle.Secondary),
-        new ButtonBuilder().setCustomId(`confess_react_wow_${confessionId}`).setLabel('😮 Wow').setStyle(ButtonStyle.Secondary)
+        new ButtonBuilder().setCustomId(`confess_react_love_${confessionId}`).setLabel('Love').setEmoji(getSafeEmoji('confess_love', client)).setStyle(ButtonStyle.Secondary),
+        new ButtonBuilder().setCustomId(`confess_react_sad_${confessionId}`).setLabel('Sad').setEmoji(getSafeEmoji('confess_sad', client)).setStyle(ButtonStyle.Secondary),
+        new ButtonBuilder().setCustomId(`confess_react_haha_${confessionId}`).setLabel('Haha').setEmoji(getSafeEmoji('confess_haha', client)).setStyle(ButtonStyle.Secondary),
+        new ButtonBuilder().setCustomId(`confess_react_angry_${confessionId}`).setLabel('Angry').setEmoji(getSafeEmoji('confess_angry', client)).setStyle(ButtonStyle.Secondary),
+        new ButtonBuilder().setCustomId(`confess_react_wow_${confessionId}`).setLabel('Wow').setEmoji(getSafeEmoji('confess_wow', client)).setStyle(ButtonStyle.Secondary)
       );
 
       const reactionRow2 = new ActionRowBuilder().addComponents(
-        new ButtonBuilder().setCustomId(`confess_comment_${confessionId}`).setLabel('💬 Add Comment | إضافة تعليق').setStyle(ButtonStyle.Primary)
+        new ButtonBuilder().setCustomId(`confess_comment_${confessionId}`).setLabel('Add Comment | إضافة تعليق').setEmoji(getSafeEmoji('confess_comment', client)).setStyle(ButtonStyle.Primary)
       );
 
       const published = await confessChannel.send({ embeds: [publicEmbed], components: [reactionRow1, reactionRow2] });
@@ -3081,12 +3083,13 @@ module.exports = {
         config.logChannelId,
         config.warnChannelId,
         config.trackerLogChannelId,
+        config.confessLogChannelId,
       ].filter(id => id && id !== 'YOUR_LOG_CHANNEL_ID_HERE');
 
       const modEmbed = new EmbedBuilder()
-        .setColor(0xF59E0B)
-        .setTitle(`🔍 Confession #${confessionId} — Mod Log`)
-        .setDescription('> ' + rawMessage)
+        .setColor(config.colors.warning || 0xF59E0B)
+        .setTitle(`Confession #${confessionId} — Mod Log`)
+        .setDescription(`${getSafeEmoji('info', client, false)} > ${rawMessage}`)
         .addFields(
           { name: '👤 Sender',     value: `<@${userId}> (\`${interaction.user.tag}\` — \`${userId}\`)`, inline: false },
           { name: '📣 Published',  value: `[Jump to message](${published.url})`, inline: false },
@@ -3105,26 +3108,27 @@ module.exports = {
       }
 
       return interaction.editReply({
-        content: `✅ **تم إرسال رسالتك المجهولة بنجاح!** (#${confessionId})\n*(Your anonymous message has been published successfully!)*`,
+        content: `${getSafeEmoji('success', client, false)} **تم إرسال رسالتك المجهولة بنجاح!** (#${confessionId})\n*(Your anonymous message has been published successfully!)*`,
       });
     }
 
     // ── Reaction buttons on a confession ────────────────────────────────────
     if (interaction.isButton() && customId.startsWith('confess_react_')) {
+      const { getSafeEmoji } = require('../../utils/emojiHelper');
       // customId format: confess_react_<emoji>_<confessionId>
       const parts      = customId.split('_');  // ['confess','react','love','152']
       const emojiKey   = parts[2]; // love | sad | haha | angry | wow
       const confessionId = parseInt(parts[3], 10);
 
-      const VALID_EMOJIS = { love: '❤️', sad: '😢', haha: '😂', angry: '😡', wow: '😮' };
-      if (!VALID_EMOJIS[emojiKey]) return;
+      const VALID_KEYS = ['love', 'sad', 'haha', 'angry', 'wow'];
+      if (!VALID_KEYS.includes(emojiKey)) return;
 
       const msgId  = interaction.message.id;
       const userId = interaction.user.id;
       const result = confessManager.toggleReaction(msgId, userId, emojiKey);
 
       if (!result) {
-        return interaction.reply({ content: '❌ هذه الرسالة غير مسجلة في النظام.', ephemeral: true });
+        return interaction.reply({ content: `${getSafeEmoji('error', client, false)} هذه الرسالة غير مسجلة في النظام.`, ephemeral: true });
       }
 
       const { counts } = result;
@@ -3132,10 +3136,11 @@ module.exports = {
       // Rebuild buttons with updated counts
       const makeBtn = (key, label) => {
         const count = counts[key];
-        const display = count > 0 ? `${VALID_EMOJIS[key]} ${label} ${count}` : `${VALID_EMOJIS[key]} ${label}`;
+        const labelText = count > 0 ? `${label} ${count}` : label;
         return new ButtonBuilder()
           .setCustomId(`confess_react_${key}_${confessionId}`)
-          .setLabel(display)
+          .setLabel(labelText)
+          .setEmoji(getSafeEmoji(`confess_${key}`, client))
           .setStyle(result.added === key ? ButtonStyle.Primary : ButtonStyle.Secondary);
       };
 
@@ -3154,7 +3159,7 @@ module.exports = {
       // Provide ephemeral feedback
       const added = result.added;
       const feedbackMsg = added
-        ? `تم تسجيل تفاعلك **${VALID_EMOJIS[added]}** على الرسالة #${confessionId}.`
+        ? `تم تسجيل تفاعلك **${getSafeEmoji(`confess_${added}`, client, false)}** على الرسالة #${confessionId}.`
         : `تم إلغاء تفاعلك على الرسالة #${confessionId}.`;
 
       return interaction.followUp({ content: feedbackMsg, ephemeral: true });
@@ -3165,11 +3170,11 @@ module.exports = {
       const confessionId = customId.split('_')[2];
       const modal = new ModalBuilder()
         .setCustomId(`confess_comment_modal_${confessionId}`)
-        .setTitle(`💬 Anonymous Comment | تعليق مجهول`);
+        .setTitle('Anonymous Comment | تعليق مجهول');
 
       const commentInput = new TextInputBuilder()
         .setCustomId('confess_comment_input')
-        .setLabel('💬 تعليقك المجهول | Anonymous Comment')
+        .setLabel('تعليقك المجهول | Anonymous Comment')
         .setPlaceholder('اكتب تعليقك هنا... / Write your comment here...')
         .setStyle(TextInputStyle.Paragraph)
         .setMinLength(3)
@@ -3186,11 +3191,13 @@ module.exports = {
       const rawComment = interaction.fields.getTextInputValue('confess_comment_input').trim();
       const confessCmd = require('../../commands/general/confess');
 
+      const { getSafeEmoji } = require('../../utils/emojiHelper');
+
       // Link/promo check
       for (const pattern of confessCmd.BLOCKED_PATTERNS) {
         if (pattern.test(rawComment)) {
           return interaction.reply({
-            content: '🚫 **تعليقك يحتوي على رابط أو إعلان ممنوع.**\n*(Your comment contains a blocked link or advertisement.)*',
+            content: `${getSafeEmoji('error', client, false)} **تعليقك يحتوي على رابط أو إعلان ممنوع.**\n*(Your comment contains a blocked link or advertisement.)*`,
             ephemeral: true,
           });
         }
@@ -3203,22 +3210,22 @@ module.exports = {
       if (!thread) {
         try {
           thread = await message.startThread({
-            name: `💬 Comments • Confession #${confessionId}`,
+            name: `Comments • Confession #${confessionId}`,
             autoArchiveDuration: 1440,
             reason: `Comments for anonymous message #${confessionId}`
           });
         } catch (err) {
           console.error('[CONFESS COMMENT] Failed to start thread:', err);
           return interaction.editReply({
-            content: '❌ فشل إنشاء موضوع للتعليقات. تأكد من صلاحيات البوت لإدارة المواضيع (Manage Threads).'
+            content: `${getSafeEmoji('error', client, false)} فشل إنشاء موضوع للتعليقات. تأكد من صلاحيات البوت لإدارة المواضيع (Manage Threads).`
           });
         }
       }
 
       // Send anonymous comment embed into thread
       const commentEmbed = new EmbedBuilder()
-        .setColor(0x8B5CF6)
-        .setDescription(`💬 **تعليق مجهول:**\n\n> ${rawComment}`)
+        .setColor(config.colors.accent || 0x8B5CF6)
+        .setDescription(`${getSafeEmoji('confess_comment', client, false)} **تعليق مجهول:**\n\n> ${rawComment}`)
         .setFooter({ text: `Community Zone TN • تعليق مجهول` })
         .setTimestamp();
 
@@ -3226,7 +3233,7 @@ module.exports = {
 
       if (!commentMsg) {
         return interaction.editReply({
-          content: '❌ فشل إرسال التعليق في موضوع التعليقات.'
+          content: `${getSafeEmoji('error', client, false)} فشل إرسال التعليق في موضوع التعليقات.`
         });
       }
 
@@ -3235,12 +3242,13 @@ module.exports = {
         config.logChannelId,
         config.warnChannelId,
         config.trackerLogChannelId,
+        config.confessLogChannelId,
       ].filter(id => id && id !== 'YOUR_LOG_CHANNEL_ID_HERE');
 
       const modEmbed = new EmbedBuilder()
-        .setColor(0xF59E0B)
-        .setTitle(`💬 Comment on Confession #${confessionId} — Mod Log`)
-        .setDescription('> ' + rawComment)
+        .setColor(config.colors.warning || 0xF59E0B)
+        .setTitle(`Comment on Confession #${confessionId} — Mod Log`)
+        .setDescription(`${getSafeEmoji('confess_comment', client, false)} > ${rawComment}`)
         .addFields(
           { name: '👤 Sender',     value: `<@${interaction.user.id}> (\`${interaction.user.tag}\` — \`${interaction.user.id}\`)`, inline: false },
           { name: '📣 Origin Post', value: `[Confession Message](${message.url})`, inline: true },
@@ -3260,7 +3268,7 @@ module.exports = {
       }
 
       return interaction.editReply({
-        content: `✅ **تم نشر تعليقك المجهول بنجاح!** [انتقل إلى الموضوع](${commentMsg.url})`
+        content: `${getSafeEmoji('success', client, false)} **تم نشر تعليقك المجهول بنجاح!** [انتقل إلى الموضوع](${commentMsg.url})`
       });
     }
   }
