@@ -39,18 +39,18 @@ class DashboardGenerator {
       : 'None';
 
     return new EmbedBuilder()
-      .setTitle('👑 Temporary Voice Room Dashboard')
+      .setTitle(`${getSafeEmoji('owner', voiceChannel?.client, false)} Temporary Voice Room Dashboard`)
       .setDescription(
         `Welcome to your personal room control panel! As the room owner, you can manage permissions, limits, and visibility directly using the premium buttons below.\n\n` +
         `**⚠️ Global Block Override Active:** Globally blocked users are completely restricted from joining or viewing this room, overriding whitelists.`
       )
       .setColor(config.colors.accent)
       .addFields([
-        { name: '👤 Room Owner', value: `<@${owner.id}> (${owner.user.tag})`, inline: true },
+        { name: `${getSafeEmoji('member', voiceChannel?.client, false)} Room Owner`, value: `<@${owner.id}> (${owner.user.tag})`, inline: true },
         { name: '🔊 Voice Channel', value: `<#${voiceChannel.id}>`, inline: true },
-        { name: '👥 Room Limit', value: `\`${limit}\` (Active: \`${memberCount}\`)`, inline: true },
-        { name: '🚪 Access Status', value: `\`${accessType}\``, inline: true },
-        { name: '👁️ Visibility', value: `\`${visibility}\``, inline: true },
+        { name: `${getSafeEmoji('limit', voiceChannel?.client, false)} Room Limit`, value: `\`${limit}\` (Active: \`${memberCount}\`)`, inline: true },
+        { name: `${getSafeEmoji('access', voiceChannel?.client, false)} Access Status`, value: `\`${accessType}\``, inline: true },
+        { name: `${getSafeEmoji('hide', voiceChannel?.client, false)} Visibility`, value: `\`${visibility}\``, inline: true },
         { name: '📅 Created At', value: `<t:${Math.floor(roomDetails.createdAt.getTime() / 1000)}:R>`, inline: true },
         { name: '✅ Whitelisted Users', value: whitelistedUsersStr, inline: false },
         { name: '🛡️ Whitelisted Roles', value: whitelistedRolesStr, inline: false },
@@ -59,7 +59,7 @@ class DashboardGenerator {
       .setImage(`attachment://${BANNER_ATTACHMENT_NAME}`)
       .setTimestamp()
       .setFooter({
-        text: 'Owner Control Panel • Clicking buttons is restricted to Room Owner',
+        text: 'Owner Control Panel • Developed by sejed.dev & akaza_senior',
         iconURL: 'https://cdn.discordapp.com/emojis/1150495818987413554.webp?size=128&quality=lossless'
       });
   }
@@ -162,11 +162,13 @@ class DashboardGenerator {
     const row = new ActionRowBuilder().addComponents(
       new ButtonBuilder()
         .setCustomId(`temp_voice_vote_open_${voiceId}`)
-        .setLabel('🗳️ Cast Your Vote | صوّت الآن')
+        .setLabel('Cast Your Vote | صوّت الآن')
+        .setEmoji('🗳️')
         .setStyle(ButtonStyle.Primary),
       new ButtonBuilder()
         .setCustomId(`temp_voice_vote_skip_${voiceId}`)
-        .setLabel('⏭️ Skip (No Vote) | تخطي')
+        .setLabel('Skip (No Vote) | تخطي')
+        .setEmoji('⏭️')
         .setStyle(ButtonStyle.Secondary)
     );
     return [row];

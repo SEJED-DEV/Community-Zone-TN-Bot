@@ -50,16 +50,16 @@ module.exports = {
 
     const row2 = new ActionRowBuilder().addComponents(
       new ButtonBuilder().setCustomId('admin_panel_unban').setLabel('Unban').setEmoji(getSafeEmoji('unlock', client, true)).setStyle(ButtonStyle.Success),
-      new ButtonBuilder().setCustomId('admin_panel_warn').setLabel('Warn').setEmoji(getSafeEmoji('error', client, true)).setStyle(ButtonStyle.Secondary),
+      new ButtonBuilder().setCustomId('admin_panel_warn').setLabel('Warn').setEmoji(getSafeEmoji('warning', client, true)).setStyle(ButtonStyle.Secondary),
       new ButtonBuilder().setCustomId('admin_panel_info').setLabel('Info').setEmoji(getSafeEmoji('info', client, true)).setStyle(ButtonStyle.Secondary)
     );
 
     await channel.send({ embeds: [panelEmbed], components: [row1, row2] });
 
     if (channel.id !== interaction.channelId) {
-      await interaction.reply({ content: `✅ Admin moderation panel successfully deployed in ${channel}.`, ephemeral: true });
+      await interaction.reply({ content: `${getSafeEmoji('success', client, false)} Admin moderation panel successfully deployed in ${channel}.`, ephemeral: true });
     } else {
-      await interaction.reply({ content: `✅ Admin moderation panel successfully deployed.`, ephemeral: true });
+      await interaction.reply({ content: `${getSafeEmoji('success', client, false)} Admin moderation panel successfully deployed.`, ephemeral: true });
     }
   },
 };

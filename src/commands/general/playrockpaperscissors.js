@@ -6,6 +6,7 @@ const {
   ButtonStyle,
 } = require('discord.js');
 const economy = require('../../managers/economyManager');
+const { getSafeEmoji } = require('../../utils/emojiHelper');
 
 function getWinner(choiceA, choiceB) {
   if (choiceA === choiceB) return 'Tie';
@@ -39,14 +40,14 @@ module.exports = {
     // ── Validations ──────────────────────────────────────────────────────────────
     if (opponent.id === challenger.id) {
       return interaction.editReply({
-        embeds: [new EmbedBuilder().setColor(0xEF4444).setTitle('❌ خطأ')
+        embeds: [new EmbedBuilder().setColor(0xEF4444).setTitle(`${getSafeEmoji('error', client, false)} خطأ`)
           .setDescription('لا يمكنك تحدي نفسك!')
           .setFooter({ text: 'Community Zone • RPS Arena' })]
       });
     }
     if (opponent.bot) {
       return interaction.editReply({
-        embeds: [new EmbedBuilder().setColor(0xEF4444).setTitle('❌ خطأ')
+        embeds: [new EmbedBuilder().setColor(0xEF4444).setTitle(`${getSafeEmoji('error', client, false)} خطأ`)
           .setDescription('لا يمكنك تحدي البوتات!')
           .setFooter({ text: 'Community Zone • RPS Arena' })]
       });
@@ -58,7 +59,7 @@ module.exports = {
     if (member.voice.channelId) {
       if (!targetMember?.voice?.channelId || targetMember.voice.channelId !== member.voice.channelId) {
         return interaction.editReply({
-          embeds: [new EmbedBuilder().setColor(0xEF4444).setTitle('❌ خطأ في الروم الصوتي')
+          embeds: [new EmbedBuilder().setColor(0xEF4444).setTitle(`${getSafeEmoji('error', client, false)} خطأ في الروم الصوتي`)
             .setDescription(`يجب أن تكون أنت و <@${opponent.id}> في نفس الروم الصوتي للعب معاً!`)
             .setFooter({ text: 'Community Zone • RPS Arena' })]
         });
@@ -70,7 +71,7 @@ module.exports = {
       const challengerBal = economy.getBalance(guildId, challenger.id);
       if (challengerBal < bet) {
         return interaction.editReply({
-          embeds: [new EmbedBuilder().setColor(0xEF4444).setTitle('❌ رصيد غير كافٍ')
+          embeds: [new EmbedBuilder().setColor(0xEF4444).setTitle(`${getSafeEmoji('error', client, false)} رصيد غير كافٍ`)
             .setDescription(`رصيدك (\`${challengerBal.toLocaleString()} DT\`) أقل من الرهان (\`${bet.toLocaleString()} DT\`).`)
             .setFooter({ text: 'Community Zone • RPS Arena' })]
         });
@@ -78,7 +79,7 @@ module.exports = {
       const opponentBal = economy.getBalance(guildId, opponent.id);
       if (opponentBal < bet) {
         return interaction.editReply({
-          embeds: [new EmbedBuilder().setColor(0xEF4444).setTitle('❌ رصيد الخصم غير كافٍ')
+          embeds: [new EmbedBuilder().setColor(0xEF4444).setTitle(`${getSafeEmoji('error', client, false)} رصيد الخصم غير كافٍ`)
             .setDescription(`رصيد <@${opponent.id}> (\`${opponentBal.toLocaleString()} DT\`) أقل من الرهان (\`${bet.toLocaleString()} DT\`).`)
             .setFooter({ text: 'Community Zone • RPS Arena' })]
         });
@@ -88,18 +89,18 @@ module.exports = {
     // ── Challenge invite ─────────────────────────────────────────────────────────
     const inviteEmbed = new EmbedBuilder()
       .setColor(0x6366F1)
-      .setTitle('⚔️ تحدي حجرة - ورقة - مقص')
+      .setTitle(`${getSafeEmoji('info', client, false)} تحدي حجرة - ورقة - مقص`)
       .setDescription(
         `🤝 <@${challenger.id}> يتحدى <@${opponent.id}> في **حجرة - ورقة - مقص**!\n\n` +
         `💰 **الرهان:** ${bet > 0 ? `\`${bet.toLocaleString()} DT\`` : 'للمتعة فقط 🎉'}\n\n` +
         `> <@${opponent.id}> — اضغط للقبول أو الرفض.`
       )
-      .setFooter({ text: 'ينتهي القبول خلال 60 ثانية.' })
+      .setFooter({ text: 'ينتهي القبول خلال 60 ثانية. • Dev by sejed.dev & akaza_senior' })
       .setTimestamp();
 
     const rowInvite = new ActionRowBuilder().addComponents(
-      new ButtonBuilder().setCustomId('rps_accept').setLabel('✅ قبول').setStyle(ButtonStyle.Success),
-      new ButtonBuilder().setCustomId('rps_decline').setLabel('❌ رفض').setStyle(ButtonStyle.Danger)
+      new ButtonBuilder().setCustomId('rps_accept').setLabel('قبول').setEmoji(getSafeEmoji('success', client, true)).setStyle(ButtonStyle.Success),
+      new ButtonBuilder().setCustomId('rps_decline').setLabel('رفض').setEmoji(getSafeEmoji('error', client, true)).setStyle(ButtonStyle.Danger)
     );
 
     const msg = await interaction.editReply({ embeds: [inviteEmbed], components: [rowInvite] });
@@ -113,7 +114,7 @@ module.exports = {
     inviteCollector.on('end', async (collected, reason) => {
       if (reason === 'time' || !collected.size) {
         return interaction.editReply({
-          embeds: [new EmbedBuilder().setColor(0xEF4444).setTitle('❌ انتهى وقت القبول')
+          embeds: [new EmbedBuilder().setColor(0xEF4444).setTitle(`${getSafeEmoji('error', client, false)} انتهى وقت القبول`)
             .setDescription(`لم يستجب <@${opponent.id}> للتحدي في الوقت المحدد.`)],
           components: []
         });
@@ -123,7 +124,7 @@ module.exports = {
 
       if (i.customId === 'rps_decline') {
         return i.update({
-          embeds: [new EmbedBuilder().setColor(0xEF4444).setTitle('❌ تم رفض التحدي')
+          embeds: [new EmbedBuilder().setColor(0xEF4444).setTitle(`${getSafeEmoji('error', client, false)} تم رفض التحدي`)
             .setDescription(`رفض <@${opponent.id}> تحدي <@${challenger.id}>.`)],
           components: []
         });
@@ -133,7 +134,7 @@ module.exports = {
       if (bet > 0) {
         if (economy.getBalance(guildId, challenger.id) < bet || economy.getBalance(guildId, opponent.id) < bet) {
           return i.update({
-            embeds: [new EmbedBuilder().setColor(0xEF4444).setTitle('❌ فشل بدء التحدي')
+            embeds: [new EmbedBuilder().setColor(0xEF4444).setTitle(`${getSafeEmoji('error', client, false)} فشل بدء التحدي`)
               .setDescription('رصيد أحد اللاعبين غير كافٍ الآن. تم إلغاء التحدي.')],
             components: []
           });
@@ -148,22 +149,22 @@ module.exports = {
 
       const buildGameEmbed = () => new EmbedBuilder()
         .setColor(0x6366F1)
-        .setTitle('🎮 ساحة حجرة - ورقة - مقص')
+        .setTitle(`${getSafeEmoji('casino', client, false)} ساحة حجرة - ورقة - مقص`)
         .setDescription(
           `⚔️ <@${challenger.id}> **ضد** <@${opponent.id}>\n` +
           `💰 **الرهان:** ${bet > 0 ? `\`${bet.toLocaleString()} DT\`` : 'للمتعة فقط'}\n\n` +
           `**حالة الاختيار:**\n` +
-          `• <@${challenger.id}>: ${challengerChoice ? '✅ تم الاختيار' : '⏳ في الانتظار...'}\n` +
-          `• <@${opponent.id}>: ${opponentChoice   ? '✅ تم الاختيار' : '⏳ في الانتظار...'}\n\n` +
+          `• <@${challenger.id}>: ${challengerChoice ? `${getSafeEmoji('success', client, false)} تم الاختيار` : `${getSafeEmoji('loading', client, false)} في الانتظار...`}\n` +
+          `• <@${opponent.id}>: ${opponentChoice   ? `${getSafeEmoji('success', client, false)} تم الاختيار` : `${getSafeEmoji('loading', client, false)} في الانتظار...`}\n\n` +
           `> اختيارك **سري** — لن يراه الطرف الآخر حتى ينتهي الجميع.`
         )
-        .setFooter({ text: 'لديك 60 ثانية للاختيار.' })
+        .setFooter({ text: 'لديك 60 ثانية للاختيار. • Dev by sejed.dev & akaza_senior' })
         .setTimestamp();
 
       const rowGame = new ActionRowBuilder().addComponents(
-        new ButtonBuilder().setCustomId('rps_rock').setLabel('🪨 حجرة').setStyle(ButtonStyle.Primary),
-        new ButtonBuilder().setCustomId('rps_paper').setLabel('📄 ورقة').setStyle(ButtonStyle.Primary),
-        new ButtonBuilder().setCustomId('rps_scissors').setLabel('✂️ مقص').setStyle(ButtonStyle.Primary)
+        new ButtonBuilder().setCustomId('rps_rock').setLabel('حجرة').setEmoji('🪨').setStyle(ButtonStyle.Primary),
+        new ButtonBuilder().setCustomId('rps_paper').setLabel('ورقة').setEmoji('📄').setStyle(ButtonStyle.Primary),
+        new ButtonBuilder().setCustomId('rps_scissors').setLabel('مقص').setEmoji('✂️').setStyle(ButtonStyle.Primary)
       );
 
       await i.update({ embeds: [buildGameEmbed()], components: [rowGame] });
@@ -207,7 +208,7 @@ module.exports = {
               economy.addBalance(guildId, opponent.id,   bet, 'RPS Timeout Refund');
             }
             return interaction.editReply({
-              embeds: [new EmbedBuilder().setColor(0xEF4444).setTitle('⏱️ انتهى الوقت')
+              embeds: [new EmbedBuilder().setColor(0xEF4444).setTitle(`${getSafeEmoji('warning', client, false)} انتهى الوقت`)
                 .setDescription('لم يختر أي من اللاعبين. تم إلغاء اللعبة وإرجاع الرهان.')],
               components: []
             });
@@ -218,7 +219,7 @@ module.exports = {
           if (bet > 0) economy.addBalance(guildId, forfeitWinner.id, bet * 2, 'RPS Win by Forfeit');
 
           return interaction.editReply({
-            embeds: [new EmbedBuilder().setColor(0x10B981).setTitle('🏆 فوز بالانسحاب')
+            embeds: [new EmbedBuilder().setColor(0x10B981).setTitle(`${getSafeEmoji('success', client, false)} فوز بالانسحاب`)
               .setDescription(
                 `🏆 <@${forfeitWinner.id}> فاز لأن <@${forfeitLoser.id}> لم يختر في الوقت!\n\n` +
                 `${bet > 0 ? `💰 ربح **${(bet * 2).toLocaleString()} DT**` : ''}`
@@ -254,7 +255,7 @@ module.exports = {
         }
 
         await interaction.editReply({
-          embeds: [new EmbedBuilder().setColor(color).setTitle('🏁 نتيجة المباراة').setDescription(desc).setTimestamp()],
+          embeds: [new EmbedBuilder().setColor(color).setTitle(`${getSafeEmoji('success', client, false)} نتيجة المباراة`).setDescription(desc).setTimestamp()],
           components: []
         });
       });

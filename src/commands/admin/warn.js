@@ -100,6 +100,7 @@ module.exports = {
         }
       }
 
+      // Warning History
       if (warns.history.length > 0) {
         const historyList = warns.history.map((h, i) => 
           `**#${i + 1} - Level ${h.warnLevel}**\n` +
@@ -107,9 +108,22 @@ module.exports = {
           `• **Mod:** <@${h.moderatorId}>\n` +
           `• **Time:** <t:${h.timestamp}:R>`
         ).join('\n\n');
-        embed.addFields({ name: '📜 Warning History', value: historyList });
+        embed.addFields({ name: `${getSafeEmoji('info', client, false)} Warning History`, value: historyList.length > 1024 ? historyList.slice(0, 1021) + '...' : historyList });
       } else {
-        embed.addFields({ name: '📜 Warning History', value: '*No warnings logged.*' });
+        embed.addFields({ name: `${getSafeEmoji('info', client, false)} Warning History`, value: '*No warnings logged.*' });
+      }
+
+      // Moderation History (Bans, Kicks, Timeouts)
+      if (warns.moderationHistory && warns.moderationHistory.length > 0) {
+        const modHistoryList = warns.moderationHistory.map((h, i) =>
+          `**${h.type}** ${h.duration ? `(\`${h.duration}\`)` : ''}\n` +
+          `• **Reason:** \`${h.reason}\`\n` +
+          `• **Mod:** <@${h.moderatorId}>\n` +
+          `• **Time:** <t:${h.timestamp}:R>`
+        ).join('\n\n');
+        embed.addFields({ name: '🔨 Ban & Punishment History', value: modHistoryList.length > 1024 ? modHistoryList.slice(0, 1021) + '...' : modHistoryList });
+      } else {
+        embed.addFields({ name: '🔨 Ban & Punishment History', value: '*No other moderation actions logged.*' });
       }
 
       // If level is 3, suggest actions
@@ -390,6 +404,9 @@ module.exports = {
           }
 
           try {
+            // Log to warnManager
+            warnManager.addModerationAction(guildId, targetUser.id, 'TIMEOUT', reason, interaction.user.id, durationStr);
+
             // DM first
             const dmEmbed = new EmbedBuilder()
               .setTitle('⏳ You Have Been Timed Out')
@@ -491,6 +508,9 @@ module.exports = {
           }
 
           try {
+            // Log to warnManager
+            warnManager.addModerationAction(guildId, targetUser.id, 'KICK', reason, interaction.user.id);
+
             // DM first
             const dmEmbed = new EmbedBuilder()
               .setTitle('🦶 You Have Been Kicked')
@@ -573,6 +593,9 @@ module.exports = {
           const reason = submitted.fields.getTextInputValue('reason');
 
           try {
+            // Log to warnManager
+            warnManager.addModerationAction(guildId, targetUser.id, 'UNBAN', reason, interaction.user.id);
+
             await interaction.guild.members.unban(targetUser.id, `Unbanned by ${interaction.user.tag}: ${reason}`);
 
             await logger.success(client, '🔓 Member Unbanned', [
@@ -645,6 +668,9 @@ module.exports = {
           }
 
           try {
+            // Log to warnManager
+            warnManager.addModerationAction(guildId, targetUser.id, 'BAN', reason, interaction.user.id);
+
             // DM first
             const dmEmbed = new EmbedBuilder()
               .setTitle('🔨 You Have Been Banned')

@@ -46,6 +46,6 @@ module.exports = {
     );
 
     await channel.send({ embeds: [embed], components: [row] });
-    return interaction.reply({ content: `✅ Nickname panel deployed in ${channel}.`, ephemeral: true });
+    return interaction.reply({ content: `${getSafeEmoji('success', client, false)} Nickname panel deployed in ${channel}.`, ephemeral: true });
   },
 };

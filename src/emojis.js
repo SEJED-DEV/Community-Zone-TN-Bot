@@ -58,5 +58,14 @@ module.exports = {
   confess_haha: '<:haha:123456789012345678>',
   confess_angry: '<:angry:123456789012345678>',
   confess_wow: '<:wow:123456789012345678>',
-  confess_comment: '<:comment:123456789012345678>'
+  confess_comment: '<:comment:123456789012345678>',
+
+  // Additional New Emojis
+  purge: '<:purge:123456789012345678>',
+  dispute: '<:dispute:123456789012345678>',
+  crate: '<:crate:123456789012345678>',
+  rock: '<:rock:123456789012345678>',
+  paper: '<:paper:123456789012345678>',
+  scissors: '<:scissors:123456789012345678>',
+  vote: '<:vote:123456789012345678>'
 };

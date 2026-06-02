@@ -103,19 +103,41 @@ module.exports = {
     try {
       const guildId = config.guildId;
       const categoryId = config.tempCategoryId;
+      const tempVoiceManager = require('../../managers/tempVoice');
 
       if (guildId && guildId !== 'YOUR_SERVER_GUILD_ID_HERE') {
         const guild = await client.guilds.fetch(guildId).catch(() => null);
-        if (guild && categoryId && categoryId !== 'YOUR_CATEGORY_ID_HERE') {
+        if (guild) {
           const runCleanup = async () => {
             console.log('[TEMP VOICE GC] Scanning for empty temporary voice channels...');
-            const category = await guild.channels.fetch(categoryId).catch(() => null);
-            if (category && category.type === ChannelType.GuildCategory) {
-              const children = guild.channels.cache.filter(ch => ch.parentId === categoryId && ch.type === ChannelType.GuildVoice);
-              for (const [id, ch] of children) {
-                if (id !== config.triggerChannelId && ch.name !== '🎧・𝐉𝐨𝐢𝐧 𝐓𝐨 𝐂𝐫𝐞𝐚𝐭𝐞' && ch.members.size === 0) {
-                  console.log(`[TEMP VOICE GC] Deleting empty leftover channel: ${ch.name} (${id})`);
-                  await ch.delete().catch(() => null);
+
+            // Validate persisted rooms
+            const allRooms = tempVoiceManager.getAllRooms();
+            for (const room of allRooms) {
+              const channel = await guild.channels.fetch(room.voiceId).catch(() => null);
+              if (!channel) {
+                console.log(`[TEMP VOICE GC] Room ${room.voiceId} no longer exists. Removing from persistence.`);
+                tempVoiceManager.deleteRoom(room.voiceId);
+                continue;
+              }
+              if (channel.members.size === 0) {
+                console.log(`[TEMP VOICE GC] Room ${channel.name} is empty. Deleting.`);
+                await channel.delete().catch(() => null);
+                tempVoiceManager.deleteRoom(room.voiceId);
+              }
+            }
+
+            // Category cleanup for untracked channels
+            if (categoryId && categoryId !== 'YOUR_CATEGORY_ID_HERE') {
+              const category = await guild.channels.fetch(categoryId).catch(() => null);
+              if (category && category.type === ChannelType.GuildCategory) {
+                const children = guild.channels.cache.filter(ch => ch.parentId === categoryId && ch.type === ChannelType.GuildVoice);
+                for (const [id, ch] of children) {
+                  if (id !== config.triggerChannelId && ch.name !== '🎧・𝐉𝐨𝐢𝐧 𝐓𝐨 𝐂𝐫𝐞𝐚𝐭𝐞' && ch.members.size === 0) {
+                    console.log(`[TEMP VOICE GC] Deleting empty leftover channel: ${ch.name} (${id})`);
+                    await ch.delete().catch(() => null);
+                    tempVoiceManager.deleteRoom(id);
+                  }
                 }
               }
             }

@@ -1,3 +1,9 @@
+const fs = require('fs');
+const path = require('path');
+
+const dataDir = path.join(__dirname, '../../data');
+const roomsPath = path.join(dataDir, 'temp_rooms.json');
+
 /**
  * Memory-based manager for temporary voice channels.
  * No databases are used; all state is tracked in runtime memory maps.
@@ -12,6 +18,54 @@ class TempVoiceManager {
     this.creationLocks = new Set();
     // Map: voiceChannelId -> NodeJS.Timeout (grace period tracking before deletion)
     this.deletionTimeouts = new Map();
+
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir, { recursive: true });
+    }
+    this.loadRooms();
+  }
+
+  /**
+   * Load rooms from persistent storage.
+   */
+  loadRooms() {
+    if (fs.existsSync(roomsPath)) {
+      try {
+        const raw = fs.readFileSync(roomsPath, 'utf8');
+        const data = JSON.parse(raw);
+        for (const [voiceId, room] of Object.entries(data)) {
+          room.whitelistedUsers = new Set(room.whitelistedUsers || []);
+          room.whitelistedRoles = new Set(room.whitelistedRoles || []);
+          room.createdAt = new Date(room.createdAt);
+          this.rooms.set(voiceId, room);
+          if (room.textId) {
+            this.textToVoice.set(room.textId, voiceId);
+          }
+        }
+        console.log(`[TEMP VOICE] Loaded ${this.rooms.size} rooms from storage.`);
+      } catch (e) {
+        console.error('[TEMP VOICE ERROR] Failed to load temp_rooms.json:', e);
+      }
+    }
+  }
+
+  /**
+   * Save rooms to persistent storage.
+   */
+  saveRooms() {
+    try {
+      const data = {};
+      for (const [voiceId, room] of this.rooms.entries()) {
+        data[voiceId] = {
+          ...room,
+          whitelistedUsers: Array.from(room.whitelistedUsers),
+          whitelistedRoles: Array.from(room.whitelistedRoles)
+        };
+      }
+      fs.writeFileSync(roomsPath, JSON.stringify(data, null, 2), 'utf8');
+    } catch (e) {
+      console.error('[TEMP VOICE ERROR] Failed to save temp_rooms.json:', e);
+    }
   }
 
   /**
@@ -31,6 +85,7 @@ class TempVoiceManager {
     };
     this.rooms.set(voiceId, room);
     this.textToVoice.set(textId, voiceId);
+    this.saveRooms();
     return room;
   }
 
@@ -70,6 +125,7 @@ class TempVoiceManager {
     if (room) {
       this.textToVoice.delete(room.textId);
       this.rooms.delete(voiceId);
+      this.saveRooms();
       return true;
     }
     return false;
@@ -82,6 +138,7 @@ class TempVoiceManager {
     const room = this.rooms.get(voiceId);
     if (room) {
       room.ownerId = newOwnerId;
+      this.saveRooms();
       return true;
     }
     return false;
@@ -94,6 +151,7 @@ class TempVoiceManager {
     const room = this.rooms.get(voiceId);
     if (room) {
       room.locked = locked;
+      this.saveRooms();
       return true;
     }
     return false;
@@ -106,6 +164,7 @@ class TempVoiceManager {
     const room = this.rooms.get(voiceId);
     if (room) {
       room.hidden = hidden;
+      this.saveRooms();
       return true;
     }
     return false;
@@ -118,6 +177,7 @@ class TempVoiceManager {
     const room = this.rooms.get(voiceId);
     if (room) {
       room.whitelistedUsers.add(userId);
+      this.saveRooms();
       return true;
     }
     return false;
@@ -130,6 +190,7 @@ class TempVoiceManager {
     const room = this.rooms.get(voiceId);
     if (room) {
       room.whitelistedUsers.delete(userId);
+      this.saveRooms();
       return true;
     }
     return false;
@@ -142,6 +203,7 @@ class TempVoiceManager {
     const room = this.rooms.get(voiceId);
     if (room) {
       room.whitelistedRoles.add(roleId);
+      this.saveRooms();
       return true;
     }
     return false;
@@ -154,6 +216,7 @@ class TempVoiceManager {
     const room = this.rooms.get(voiceId);
     if (room) {
       room.whitelistedRoles.delete(roleId);
+      this.saveRooms();
       return true;
     }
     return false;

@@ -30,7 +30,7 @@ module.exports = {
       .setColor(0x6366F1)
       .setTitle(`${getSafeEmoji('shop', client, false)} Dinar TN Central Shop | متجر دينار تونسي`)
       .setDescription('Purchase crates and exclusive roles below!')
-      .setFooter({ text: 'Community Zone • Economy System' });
+      .setFooter({ text: 'Community Zone • Economy System • Dev by sejed.dev & akaza_senior' });
 
     const rowCrates = new ActionRowBuilder().addComponents(
       new ButtonBuilder().setCustomId('shop_buy_crate_common').setLabel('Common Crate').setEmoji('📦').setStyle(ButtonStyle.Secondary),
@@ -53,7 +53,7 @@ module.exports = {
       .setColor(0xF59E0B)
       .setTitle(`${getSafeEmoji('casino', client, false)} Dinar TN Casino | كازينو دينار تونسي`)
       .setDescription('Gamble your DT for a chance to win huge XP boosts!')
-      .setFooter({ text: 'Community Zone • Luck & Games' });
+      .setFooter({ text: 'Community Zone • Luck & Games • Dev by sejed.dev & akaza_senior' });
 
     const rowCasino = new ActionRowBuilder().addComponents(
       new ButtonBuilder().setCustomId('casino_spin_boost').setLabel('Spin XP Boost Wheel').setEmoji(getSafeEmoji('casino', client, true)).setStyle(ButtonStyle.Danger)
@@ -62,6 +62,6 @@ module.exports = {
     await channel.send({ embeds: [shopEmbed], components: [rowCrates, rowRoles, rowOther] });
     await channel.send({ embeds: [casinoEmbed], components: [rowCasino] });
 
-    return interaction.editReply({ content: `✅ Economy panels successfully deployed in ${channel}.` });
+    return interaction.editReply({ content: `${getSafeEmoji('success', client, false)} Economy panels successfully deployed in ${channel}.` });
   },
 };

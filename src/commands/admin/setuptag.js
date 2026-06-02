@@ -38,7 +38,7 @@ module.exports = {
         '• `✅ Apply to All` — Force-apply the current tag to every member.\n' +
         '• `🗑️ Remove from All` — Strip the tag from all current nicknames.'
       )
-      .setFooter({ text: 'Community Zone • Tag System' })
+      .setFooter({ text: 'Community Zone • Tag System • Dev by sejed.dev & akaza_senior' })
       .setTimestamp();
 
     const row1 = new ActionRowBuilder().addComponents(
@@ -55,9 +55,9 @@ module.exports = {
     await channel.send({ embeds: [panelEmbed], components: [row1, row2] });
 
     if (channel.id !== interaction.channelId) {
-      await interaction.reply({ content: `✅ Tag management panel successfully deployed in ${channel}.`, ephemeral: true });
+      await interaction.reply({ content: `${getSafeEmoji('success', client, false)} Tag management panel successfully deployed in ${channel}.`, ephemeral: true });
     } else {
-      await interaction.reply({ content: `✅ Tag management panel successfully deployed.`, ephemeral: true });
+      await interaction.reply({ content: `${getSafeEmoji('success', client, false)} Tag management panel successfully deployed.`, ephemeral: true });
     }
   },
 };

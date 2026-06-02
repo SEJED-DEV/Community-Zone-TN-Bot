@@ -5,6 +5,7 @@ const {
 } = require('discord.js');
 const levelingManager = require('../../managers/levelingManager');
 const config = require('../../config');
+const { getSafeEmoji } = require('../../utils/emojiHelper');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -29,8 +30,8 @@ module.exports = {
         embeds: [
           new EmbedBuilder()
             .setColor(0xEF4444)
-            .setDescription(`❌ **${target.username}** hasn't earned any XP yet!`)
-            .setFooter({ text: 'Community Zone • Leveling System' }),
+            .setDescription(`${getSafeEmoji('error', client, false)} **${target.username}** hasn't earned any XP yet!`)
+            .setFooter({ text: 'Community Zone • Leveling System • Dev by sejed.dev & akaza_senior' }),
         ],
       });
     }
@@ -61,8 +62,6 @@ module.exports = {
     const nextMilestone = levelingManager
       .getAllMilestones()
       .find(m => m.level > userData.level);
-
-    const { getSafeEmoji } = require('../../utils/emojiHelper');
 
     const embed = new EmbedBuilder()
       .setColor(0x8B5CF6)
@@ -112,7 +111,7 @@ module.exports = {
           inline: true,
         }
       )
-      .setFooter({ text: 'Community Zone • Leveling System' })
+      .setFooter({ text: 'Community Zone • Leveling System • Dev by sejed.dev & akaza_senior' })
       .setTimestamp();
 
     await interaction.editReply({ embeds: [embed] });

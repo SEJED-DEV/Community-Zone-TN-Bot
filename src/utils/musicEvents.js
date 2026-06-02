@@ -1,5 +1,6 @@
 const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const musicManager = require('../managers/musicManager');
+const { getSafeEmoji } = require('./emojiHelper');
 
 /**
  * Format milliseconds to mm:ss or hh:mm:ss
@@ -17,13 +18,13 @@ function formatDuration(ms) {
 /**
  * Builds the premium "Now Playing" embed with playback controls.
  */
-function buildNowPlayingEmbed(track, queueLength) {
+function buildNowPlayingEmbed(track, queueLength, client) {
   const duration = formatDuration(track.length);
   const requester = track.requester;
 
   return new EmbedBuilder()
     .setColor(0x8B5CF6)
-    .setAuthor({ name: '🎵 Now Playing' })
+    .setAuthor({ name: `${getSafeEmoji('music_play', client, false)} Now Playing` })
     .setTitle(track.title.length > 100 ? track.title.slice(0, 97) + '...' : track.title)
     .setURL(track.uri || null)
     .addFields(
@@ -32,38 +33,34 @@ function buildNowPlayingEmbed(track, queueLength) {
       { name: '📋 Queue', value: `\`${queueLength}\` song(s) remaining`, inline: true }
     )
     .setImage(track.thumbnail || null)
-    .setFooter({ text: 'Community Zone • Music System  •  Use /queue to see all songs' })
+    .setFooter({ text: 'Community Zone • Music System  •  Use /queue to see all songs  •  Dev by sejed.dev & akaza_senior' })
     .setTimestamp();
 }
 
 /**
  * Builds the music control buttons row.
  */
-const config = require('../config');
-
-function buildControlButtons() {
-  const getEmoji = (key) => config.emojis[key] || null;
-
+function buildControlButtons(client) {
   return new ActionRowBuilder().addComponents(
     new ButtonBuilder()
       .setCustomId('music_pause_resume')
       .setLabel('Pause / Resume')
-      .setEmoji(getEmoji('music_pause'))
+      .setEmoji(getSafeEmoji('music_pause', client, true))
       .setStyle(ButtonStyle.Secondary),
     new ButtonBuilder()
       .setCustomId('music_skip')
       .setLabel('Skip')
-      .setEmoji(getEmoji('music_skip'))
+      .setEmoji(getSafeEmoji('music_skip', client, true))
       .setStyle(ButtonStyle.Primary),
     new ButtonBuilder()
       .setCustomId('music_stop')
       .setLabel('Stop')
-      .setEmoji(getEmoji('music_stop'))
+      .setEmoji(getSafeEmoji('music_stop', client, true))
       .setStyle(ButtonStyle.Danger),
     new ButtonBuilder()
       .setCustomId('music_queue')
       .setLabel('Queue')
-      .setEmoji(getEmoji('music_queue'))
+      .setEmoji(getSafeEmoji('music_queue', client, true))
       .setStyle(ButtonStyle.Secondary),
   );
 }
@@ -86,8 +83,8 @@ module.exports = {
       if (!textChannel) return;
 
       try {
-        const embed = buildNowPlayingEmbed(track, player.queue.size);
-        const controls = buildControlButtons();
+        const embed = buildNowPlayingEmbed(track, player.queue.size, client);
+        const controls = buildControlButtons(client);
         await textChannel.send({ embeds: [embed], components: [controls] });
       } catch (err) {
         console.error(`[MUSIC EVENT] Failed to send now-playing embed in guild ${player.guildId}:`, err.message);
@@ -104,9 +101,9 @@ module.exports = {
           embeds: [
             new EmbedBuilder()
               .setColor(0x6366F1)
-              .setTitle('✅ Queue Finished')
+              .setTitle(`${getSafeEmoji('success', client, false)} Queue Finished`)
               .setDescription('All songs have been played. The bot will disconnect in **3 minutes** if no new songs are added.\n\nUse `/play` to add more music!')
-              .setFooter({ text: 'Community Zone • Music System' })
+              .setFooter({ text: 'Community Zone • Music System • Dev by sejed.dev & akaza_senior' })
               .setTimestamp()
           ]
         });
@@ -128,9 +125,9 @@ module.exports = {
           embeds: [
             new EmbedBuilder()
               .setColor(0xEF4444)
-              .setTitle('⚠️ Playback Error')
+              .setTitle(`${getSafeEmoji('error', client, false)} Playback Error`)
               .setDescription(`Failed to play **${trackName}**. Skipping to the next song.\n\n*Error: ${error?.message || 'Unknown error'}*`)
-              .setFooter({ text: 'Community Zone • Music System' })
+              .setFooter({ text: 'Community Zone • Music System • Dev by sejed.dev & akaza_senior' })
               .setTimestamp()
           ]
         });

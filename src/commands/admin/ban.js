@@ -91,6 +91,9 @@ module.exports = {
 
     // ── Execute the ban ───────────────────────────────────────────────────────
     try {
+      const warnManager = require('../../utils/warnManager');
+      warnManager.addModerationAction(interaction.guildId, targetUser.id, 'BAN', reason, interaction.user.id);
+
       await interaction.guild.members.ban(targetUser.id, {
         deleteMessageSeconds: deleteDays * 86400,
         reason: `Banned by ${interaction.user.tag}: ${reason}`,

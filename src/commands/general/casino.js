@@ -19,21 +19,21 @@ function buildCasinoHome(guildId, userId) {
   const bal = economy.getBalance(guildId, userId);
   const cooldownBoost = economy.getRemainingCooldown(guildId, userId, 'casino_boost', BOOST_COOLDOWN_MS);
 
+  const { getSafeEmoji } = require('../../utils/emojiHelper');
+
   function fmt(ms) {
-    if (ms <= 0) return '✅ متاح الآن';
+    if (ms <= 0) return `${getSafeEmoji('success', null, false)} متاح الآن`;
     const h = Math.floor(ms / 3600000);
     const m = Math.floor((ms % 3600000) / 60000);
-    return `⏳ ${h}h ${m}m`;
+    return `${getSafeEmoji('loading', null, false)} ${h}h ${m}m`;
   }
-
-  const { getSafeEmoji } = require('../../utils/emojiHelper');
 
   return new EmbedBuilder()
     .setColor(0xF59E0B)
     .setTitle(`${getSafeEmoji('casino', null, false)} كازينو دينار تونسي — عجلة الـ XP Boost`)
     .setDescription(
-      `> 💰 **رصيدك:** \`${bal.toLocaleString()} DT\`\n\n` +
-      `**⚡ XP Boost Gamble** — \`${CASINO_ROLE_PRICE} DT\`\n` +
+      `> ${getSafeEmoji('balance', null, false)} **رصيدك:** \`${bal.toLocaleString()} DT\`\n\n` +
+      `**${getSafeEmoji('xp', null, false)} XP Boost Gamble** — \`${CASINO_ROLE_PRICE} DT\`\n` +
       `> اربح XP Boost عشوائي يضاعف نقاط خبرتك تلقائياً!\n\n` +
       `**🎯 الجوائز ونسب الفوز:**\n` +
       `> ⚡ XP ×2 (1h) — **20%**\n` +
@@ -41,9 +41,9 @@ function buildCasinoHome(guildId, userId) {
       `> ⚡ XP ×2 (4h) — **25%**\n` +
       `> ⚡ XP ×1.5 (24h) — **10%**\n` +
       `> ❌ لا شيء (خسارة) — **20%**\n\n` +
-      `> ⏱️ Cooldown: **${fmt(cooldownBoost)}** (كل 24 ساعة)`
+      `> ${getSafeEmoji('loading', null, false)} Cooldown: **${fmt(cooldownBoost)}** (كل 24 ساعة)`
     )
-    .setFooter({ text: 'Community Zone • Dinar TN Casino — حظ سعيد!' });
+    .setFooter({ text: 'Community Zone • Dinar TN Casino — حظ سعيد! • Dev by sejed.dev & akaza_senior' });
 }
 
 module.exports = {

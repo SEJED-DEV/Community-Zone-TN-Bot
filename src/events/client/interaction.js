@@ -1438,6 +1438,8 @@ module.exports = {
       const dmOk = await targetUser.send({ embeds: [dmEmbed] }).then(() => true).catch(() => false);
 
       try {
+        const warnManager = require('../../utils/warnManager');
+        warnManager.addModerationAction(interaction.guildId, targetUser.id, 'BAN', reason, interaction.user.id);
         await interaction.guild.members.ban(targetUser.id, { reason: 'Banned by ' + interaction.user.tag + ': ' + reason });
       } catch (e) {
         return interaction.editReply({ content: '❌ Failed to ban | فشل الحظر: ' + e.message });
@@ -1542,6 +1544,8 @@ module.exports = {
       const kickDmOk = await targetUser.send({ embeds: [kickDmEmbed] }).then(() => true).catch(() => false);
 
       try {
+        const warnManager = require('../../utils/warnManager');
+        warnManager.addModerationAction(interaction.guildId, targetUser.id, 'KICK', reason, interaction.user.id);
         await targetMember.kick('Kicked by ' + interaction.user.tag + ': ' + reason);
       } catch (e) {
         return interaction.editReply({ content: '❌ Failed to kick | فشل الطرد: ' + e.message });
@@ -1643,6 +1647,8 @@ module.exports = {
       const dmOk = await targetUser.send({ embeds: [timeoutDmEmbed] }).then(() => true).catch(() => false);
 
       try {
+        const warnManager = require('../../utils/warnManager');
+        warnManager.addModerationAction(interaction.guildId, targetUser.id, 'TIMEOUT', reason, interaction.user.id, `${durationMinutes}m`);
         await targetMember.timeout(durationMinutes * 60 * 1000, `Timed out by ${interaction.user.tag}: ${reason}`);
       } catch (e) {
         return interaction.editReply({ content: '❌ Failed to timeout | فشل الكتم: ' + e.message });
@@ -3013,103 +3019,110 @@ module.exports = {
 
       const { getSafeEmoji } = require('../../utils/emojiHelper');
 
-      // Re-check cooldown (modal submit is a separate interaction)
-      const last = confessCmd.cooldowns.get(userId) || 0;
-      if (now - last < confessCmd.COOLDOWN_MS) {
-        const remaining = Math.ceil((confessCmd.COOLDOWN_MS - (now - last)) / 1000);
-        return interaction.editReply({
-          content: `${getSafeEmoji('warning', client, false)} الرجاء الانتظار **${remaining} ثانية** قبل إرسال رسالة جديدة.`,
-        });
-      }
-
-      const rawMessage = interaction.fields.getTextInputValue('confess_message_input').trim();
-
-      // ── Content filter ──────────────────────────────────────────────────────
-      for (const pattern of confessCmd.BLOCKED_PATTERNS) {
-        if (pattern.test(rawMessage)) {
+      try {
+        // Re-check cooldown (modal submit is a separate interaction)
+        const last = confessCmd.cooldowns.get(userId) || 0;
+        if (now - last < confessCmd.COOLDOWN_MS) {
+          const remaining = Math.ceil((confessCmd.COOLDOWN_MS - (now - last)) / 1000);
           return interaction.editReply({
-            content: `${getSafeEmoji('error', client, false)} **رسالتك تحتوي على رابط أو إعلان ممنوع.**\n*(Your message contains a blocked link or advertisement.)*`,
+            embeds: [embedGenerator.error(`${getSafeEmoji('warning', client, false)} الرجاء الانتظار **${remaining} ثانية** قبل إرسال رسالة جديدة.`) ]
           });
         }
-      }
 
-      // ── Channel check ───────────────────────────────────────────────────────
-      const confessChannelId = config.confessChannelId;
-      if (!confessChannelId) {
-        return interaction.editReply({
-          content: `${getSafeEmoji('error', client, false)} لم يتم إعداد قناة الرسائل المجهولة بعد. الرجاء التواصل مع الإدارة.\n*(Anonymous messages channel not configured yet.)*`,
-        });
-      }
+        const rawMessage = interaction.fields.getTextInputValue('confess_message_input').trim();
 
-      const confessChannel = await client.channels.fetch(confessChannelId).catch(() => null);
-      if (!confessChannel || !confessChannel.isTextBased()) {
-        return interaction.editReply({
-          content: `${getSafeEmoji('error', client, false)} تعذّر الوصول إلى قناة الرسائل المجهولة. الرجاء التواصل مع الإدارة.`,
-        });
-      }
-
-      // ── Reserve ID & update cooldown ─────────────────────────────────────────
-      const confessionId = confessManager.nextConfessionId();
-      confessCmd.cooldowns.set(userId, now);
-
-      // ── Build public confession embed ─────────────────────────────────────────
-      const publicEmbed = new EmbedBuilder()
-        .setColor(config.colors.accent || 0x8B5CF6)
-        .setTitle(`Anonymous Message #${confessionId}`)
-        .setDescription(`${getSafeEmoji('info', client, false)} > ${rawMessage}`)
-        .setFooter({ text: `Community Zone TN • رسالة مجهولة #${confessionId}` })
-        .setTimestamp();
-
-      // ── Reaction buttons ──────────────────────────────────────────────────────
-      const reactionRow1 = new ActionRowBuilder().addComponents(
-        new ButtonBuilder().setCustomId(`confess_react_love_${confessionId}`).setLabel('Love').setEmoji(getSafeEmoji('confess_love', client)).setStyle(ButtonStyle.Secondary),
-        new ButtonBuilder().setCustomId(`confess_react_sad_${confessionId}`).setLabel('Sad').setEmoji(getSafeEmoji('confess_sad', client)).setStyle(ButtonStyle.Secondary),
-        new ButtonBuilder().setCustomId(`confess_react_haha_${confessionId}`).setLabel('Haha').setEmoji(getSafeEmoji('confess_haha', client)).setStyle(ButtonStyle.Secondary),
-        new ButtonBuilder().setCustomId(`confess_react_angry_${confessionId}`).setLabel('Angry').setEmoji(getSafeEmoji('confess_angry', client)).setStyle(ButtonStyle.Secondary),
-        new ButtonBuilder().setCustomId(`confess_react_wow_${confessionId}`).setLabel('Wow').setEmoji(getSafeEmoji('confess_wow', client)).setStyle(ButtonStyle.Secondary)
-      );
-
-      const reactionRow2 = new ActionRowBuilder().addComponents(
-        new ButtonBuilder().setCustomId(`confess_comment_${confessionId}`).setLabel('Add Comment | إضافة تعليق').setEmoji(getSafeEmoji('confess_comment', client)).setStyle(ButtonStyle.Primary)
-      );
-
-      const published = await confessChannel.send({ embeds: [publicEmbed], components: [reactionRow1, reactionRow2] });
-
-      // Register for reaction tracking
-      confessManager.registerMessage(published.id, confessionId);
-
-      // ── Mod log: send to ALL configured log channels ───────────────────────
-      const logChannelIds = [
-        config.logChannelId,
-        config.warnChannelId,
-        config.trackerLogChannelId,
-        config.confessLogChannelId,
-      ].filter(id => id && id !== 'YOUR_LOG_CHANNEL_ID_HERE');
-
-      const modEmbed = new EmbedBuilder()
-        .setColor(config.colors.warning || 0xF59E0B)
-        .setTitle(`Confession #${confessionId} — Mod Log`)
-        .setDescription(`${getSafeEmoji('info', client, false)} > ${rawMessage}`)
-        .addFields(
-          { name: '👤 Sender',     value: `<@${userId}> (\`${interaction.user.tag}\` — \`${userId}\`)`, inline: false },
-          { name: '📣 Published',  value: `[Jump to message](${published.url})`, inline: false },
-          { name: '🕐 Timestamp', value: `<t:${Math.floor(now / 1000)}:F>`, inline: false }
-        )
-        .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
-        .setFooter({ text: 'Community Zone • Confessions Mod Log' })
-        .setTimestamp();
-
-      const uniqueLogIds = [...new Set(logChannelIds)];
-      for (const logId of uniqueLogIds) {
-        const logCh = await client.channels.fetch(logId).catch(() => null);
-        if (logCh && logCh.isTextBased()) {
-          await logCh.send({ embeds: [modEmbed] }).catch(() => null);
+        // ── Content filter ──────────────────────────────────────────────────────
+        for (const pattern of confessCmd.BLOCKED_PATTERNS) {
+          if (pattern.test(rawMessage)) {
+            return interaction.editReply({
+              embeds: [embedGenerator.error(`${getSafeEmoji('error', client, false)} **رسالتك تحتوي على رابط أو إعلان ممنوع.**\n*(Your message contains a blocked link or advertisement.)*`) ]
+            });
+          }
         }
-      }
 
-      return interaction.editReply({
-        content: `${getSafeEmoji('success', client, false)} **تم إرسال رسالتك المجهولة بنجاح!** (#${confessionId})\n*(Your anonymous message has been published successfully!)*`,
-      });
+        // ── Channel check ───────────────────────────────────────────────────────
+        const confessChannelId = config.confessChannelId;
+        if (!confessChannelId) {
+          return interaction.editReply({
+            embeds: [embedGenerator.error(`${getSafeEmoji('error', client, false)} لم يتم إعداد قناة الرسائل المجهولة بعد. الرجاء التواصل مع الإدارة.\n*(Anonymous messages channel not configured yet.)*`) ]
+          });
+        }
+
+        const confessChannel = await client.channels.fetch(confessChannelId).catch(() => null);
+        if (!confessChannel || !confessChannel.isTextBased()) {
+          return interaction.editReply({
+            embeds: [embedGenerator.error(`${getSafeEmoji('error', client, false)} تعذّر الوصول إلى قناة الرسائل المجهولة. الرجاء التواصل مع الإدارة.`) ]
+          });
+        }
+
+        // ── Reserve ID & update cooldown ─────────────────────────────────────────
+        const confessionId = confessManager.nextConfessionId();
+        confessCmd.cooldowns.set(userId, now);
+
+        // ── Build public confession embed ─────────────────────────────────────────
+        const publicEmbed = new EmbedBuilder()
+          .setColor(config.colors.accent || 0x8B5CF6)
+          .setTitle(`Anonymous Message #${confessionId}`)
+          .setDescription(`${getSafeEmoji('info', client, false)} > ${rawMessage}`)
+          .setFooter({ text: `Community Zone TN • رسالة مجهولة #${confessionId}` })
+          .setTimestamp();
+
+        // ── Reaction buttons ──────────────────────────────────────────────────────
+        const reactionRow1 = new ActionRowBuilder().addComponents(
+          new ButtonBuilder().setCustomId(`confess_react_love_${confessionId}`).setLabel('Love').setEmoji(getSafeEmoji('confess_love', client)).setStyle(ButtonStyle.Secondary),
+          new ButtonBuilder().setCustomId(`confess_react_sad_${confessionId}`).setLabel('Sad').setEmoji(getSafeEmoji('confess_sad', client)).setStyle(ButtonStyle.Secondary),
+          new ButtonBuilder().setCustomId(`confess_react_haha_${confessionId}`).setLabel('Haha').setEmoji(getSafeEmoji('confess_haha', client)).setStyle(ButtonStyle.Secondary),
+          new ButtonBuilder().setCustomId(`confess_react_angry_${confessionId}`).setLabel('Angry').setEmoji(getSafeEmoji('confess_angry', client)).setStyle(ButtonStyle.Secondary),
+          new ButtonBuilder().setCustomId(`confess_react_wow_${confessionId}`).setLabel('Wow').setEmoji(getSafeEmoji('confess_wow', client)).setStyle(ButtonStyle.Secondary)
+        );
+
+        const reactionRow2 = new ActionRowBuilder().addComponents(
+          new ButtonBuilder().setCustomId(`confess_comment_${confessionId}`).setLabel('Add Comment | إضافة تعليق').setEmoji(getSafeEmoji('confess_comment', client)).setStyle(ButtonStyle.Primary)
+        );
+
+        const published = await confessChannel.send({ embeds: [publicEmbed], components: [reactionRow1, reactionRow2] });
+
+        // Register for reaction tracking
+        confessManager.registerMessage(published.id, confessionId);
+
+        // ── Mod log: send to ALL configured log channels ───────────────────────
+        const logChannelIds = [
+          config.logChannelId,
+          config.warnChannelId,
+          config.trackerLogChannelId,
+          config.confessLogChannelId,
+        ].filter(id => id && id !== 'YOUR_LOG_CHANNEL_ID_HERE');
+
+        const modEmbed = new EmbedBuilder()
+          .setColor(config.colors.warning || 0xF59E0B)
+          .setTitle(`Confession #${confessionId} — Mod Log`)
+          .setDescription(`${getSafeEmoji('info', client, false)} > ${rawMessage}`)
+          .addFields(
+            { name: '👤 Sender',     value: `<@${userId}> (\`${interaction.user.tag}\` — \`${userId}\`)`, inline: false },
+            { name: '📣 Published',  value: `[Jump to message](${published.url})`, inline: false },
+            { name: '🕐 Timestamp', value: `<t:${Math.floor(now / 1000)}:F>`, inline: false }
+          )
+          .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
+          .setFooter({ text: 'Community Zone • Confessions Mod Log' })
+          .setTimestamp();
+
+        const uniqueLogIds = [...new Set(logChannelIds)];
+        for (const logId of uniqueLogIds) {
+          const logCh = await client.channels.fetch(logId).catch(() => null);
+          if (logCh && logCh.isTextBased()) {
+            await logCh.send({ embeds: [modEmbed] }).catch(() => null);
+          }
+        }
+
+        return interaction.editReply({
+          embeds: [embedGenerator.success(`${getSafeEmoji('success', client, false)} **تم إرسال رسالتك المجهولة بنجاح!** (#${confessionId})\n*(Your anonymous message has been published successfully!)*`)]
+        });
+      } catch (err) {
+        console.error('[CONFESSION ERROR]', err);
+        return interaction.editReply({
+          embeds: [embedGenerator.error(`Something went wrong while submitting your confession. Please try again later.\n\nحدث خطأ ما أثناء إرسال رسالتك المجهولة. يرجى المحاولة لاحقاً.`)]
+        });
+      }
     }
 
     // ── Reaction buttons on a confession ────────────────────────────────────

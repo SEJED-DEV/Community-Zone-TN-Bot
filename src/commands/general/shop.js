@@ -50,7 +50,7 @@ module.exports = {
         }
       )
       .setTimestamp()
-      .setFooter({ text: 'Community Zone • Economy System' });
+      .setFooter({ text: 'Community Zone • Economy System • Dev by sejed.dev & akaza_senior' });
 
     if (attachment) shopEmbed.setImage('attachment://dinar.png');
 

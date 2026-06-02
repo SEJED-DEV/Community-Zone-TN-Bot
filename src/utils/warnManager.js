@@ -40,7 +40,7 @@ class WarnManager {
   }
 
   /**
-   * Get user warning profile
+   * Get user moderation profile
    */
   getUserWarnings(guildId, userId) {
     const data = this.loadWarnings();
@@ -48,8 +48,13 @@ class WarnManager {
     if (!data[guildId][userId]) {
       data[guildId][userId] = {
         warnCount: 0,
-        history: []
+        history: [],
+        moderationHistory: []
       };
+    }
+    // Migration: ensure moderationHistory exists
+    if (!data[guildId][userId].moderationHistory) {
+      data[guildId][userId].moderationHistory = [];
     }
     return data[guildId][userId];
   }
@@ -63,13 +68,15 @@ class WarnManager {
     if (!data[guildId][userId]) {
       data[guildId][userId] = {
         warnCount: 0,
-        history: []
+        history: [],
+        moderationHistory: []
       };
     }
 
     const userWarns = data[guildId][userId];
     userWarns.warnCount = warnLevel;
     userWarns.history.push({
+      type: 'WARNING',
       warnLevel,
       reason,
       moderatorId,
@@ -81,14 +88,46 @@ class WarnManager {
   }
 
   /**
+   * Add a moderation action (Ban, Kick, Timeout) to user history
+   */
+  addModerationAction(guildId, userId, type, reason, moderatorId, duration = null) {
+    const data = this.loadWarnings();
+    if (!data[guildId]) data[guildId] = {};
+    if (!data[guildId][userId]) {
+      data[guildId][userId] = {
+        warnCount: 0,
+        history: [],
+        moderationHistory: []
+      };
+    }
+
+    if (!data[guildId][userId].moderationHistory) {
+      data[guildId][userId].moderationHistory = [];
+    }
+
+    data[guildId][userId].moderationHistory.push({
+      type,
+      reason,
+      moderatorId,
+      duration,
+      timestamp: Math.floor(Date.now() / 1000)
+    });
+
+    this.saveWarnings(data);
+    return data[guildId][userId];
+  }
+
+  /**
    * Reset warning profile for a user
    */
   resetWarnings(guildId, userId) {
     const data = this.loadWarnings();
     if (!data[guildId]) data[guildId] = {};
+    const existing = data[guildId][userId] || {};
     data[guildId][userId] = {
       warnCount: 0,
-      history: []
+      history: [],
+      moderationHistory: existing.moderationHistory || []
     };
     this.saveWarnings(data);
     return data[guildId][userId];

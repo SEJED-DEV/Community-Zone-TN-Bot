@@ -41,7 +41,20 @@ const FALLBACKS = {
   online: '🟢',
   developer: '👨‍💻',
   member: '👤',
-  server: '🏠'
+  server: '🏠',
+  confess_love: '❤️',
+  confess_sad: '😢',
+  confess_haha: '😂',
+  confess_angry: '😡',
+  confess_wow: '😮',
+  confess_comment: '💬',
+  purge: '🧹',
+  dispute: '⚖️',
+  crate: '📦',
+  rock: '🪨',
+  paper: '📄',
+  scissors: '✂️',
+  vote: '🗳️'
 };
 
 /**
@@ -53,22 +66,24 @@ const FALLBACKS = {
  */
 function getSafeEmoji(key, client, forButton = true) {
   const emojiStr = config.emojis[key];
-  if (!emojiStr) return FALLBACKS[key] || '❓';
+
+  // Strict fallback logic: only use fallback if emojiStr is missing or placeholder
+  const isPlaceholder = emojiStr && emojiStr.includes('123456789012345678');
+
+  if (!emojiStr || isPlaceholder) {
+    return FALLBACKS[key] || '❓';
+  }
 
   // Match <a:name:id> or <:name:id>
   const match = emojiStr.match(/<a?:([a-zA-Z0-9_]+):([0-9]+)>/);
   if (match) {
     const id = match[2];
-    // If client is provided, verify it exists in cache
-    if (client && client.emojis && client.emojis.cache.has(id)) {
-      return forButton ? id : emojiStr;
-    }
-    // User specifically requested to use placeholders if real emojis aren't available.
+    // If forButton is true, we MUST return just the ID for custom emojis in ButtonBuilder.setEmoji
     return forButton ? id : emojiStr;
   }
 
   // Not a custom emoji format, return as is
-  return emojiStr || '❓';
+  return emojiStr || FALLBACKS[key] || '❓';
 }
 
 module.exports = {

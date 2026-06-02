@@ -1,6 +1,7 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const musicManager = require('../../managers/musicManager');
 const embedGenerator = require('../../utils/embedGenerator');
+const { getSafeEmoji } = require('../../utils/emojiHelper');
 
 function formatDuration(ms) {
   if (!ms || ms === 0) return 'Live';
@@ -18,45 +19,56 @@ module.exports = {
     .setDescription('Show the music queue for your current voice channel.'),
 
   async execute(client, interaction) {
-    await interaction.deferReply();
-
-    const voiceChannel = interaction.member.voice.channel;
-    if (!voiceChannel) {
-      return interaction.editReply({
-        embeds: [embedGenerator.error('You must join a voice channel to use this command.')]
+    const voiceChannelId = interaction.member?.voice?.channelId;
+    if (!voiceChannelId) {
+      return interaction.reply({
+        embeds: [embedGenerator.error(`You must join a voice channel to use this command.`) ],
+        ephemeral: true
       });
     }
 
-    const player = musicManager.getPlayer(voiceChannel.id);
-    if (!player || (!player.playing && !player.paused && !player.queue.current)) {
-      return interaction.editReply({
-        embeds: [embedGenerator.error('There is no music playing in your voice channel.')]
+    const player = musicManager.getPlayer(voiceChannelId);
+    if (!player) {
+      return interaction.reply({
+        embeds: [embedGenerator.error(`No music is currently playing in your voice channel.`) ],
+        ephemeral: true
       });
     }
 
     const current = player.queue.current;
     const upcoming = player.queue.tracks || [];
 
-    const currentStr = current
-      ? `▶️ **[${current.title}](${current.uri})** \`[${formatDuration(current.length)}]\``
-      : '▶️ Nothing playing';
+    if (!current && upcoming.length === 0) {
+      return interaction.reply({
+        embeds: [embedGenerator.info('The queue is currently empty.', `${getSafeEmoji('music_queue', client, false)} Queue Empty`) ],
+        ephemeral: true
+      });
+    }
 
-    const upcomingStr = upcoming.length > 0
-      ? upcoming.slice(0, 10).map((t, i) =>
-          `\`${i + 1}.\` [${t.title}](${t.uri}) \`[${formatDuration(t.length)}]\``
-        ).join('\n')
-      : '*(Queue is empty)*';
+    const ITEMS_PER_PAGE = 10;
+    const pageItems = upcoming.slice(0, ITEMS_PER_PAGE);
+
+    const nowPlayingLine = current
+      ? `${getSafeEmoji('music_play', client, false)} **Now Playing:**\n> **${current.title}**\n> ⏱️ \`${formatDuration(current.length)}\`\n\n`
+      : '';
+
+    const queueLines = pageItems.map((song, i) =>
+      `\`${i + 1}.\` **${song.title.length > 45 ? song.title.slice(0, 42) + '...' : song.title}** — \`${formatDuration(song.length)}\``
+    ).join('\n');
 
     const embed = new EmbedBuilder()
       .setColor(0x8B5CF6)
-      .setTitle(`📋 Music Queue — ${voiceChannel.name}`)
-      .addFields(
-        { name: 'Now Playing', value: currentStr },
-        { name: `Up Next (${upcoming.length} songs)`, value: upcomingStr.length > 1024 ? upcomingStr.substring(0, 1020) + '...' : upcomingStr }
+      .setTitle(`${getSafeEmoji('music_queue', client, false)} Music Queue`)
+      .setDescription(
+        nowPlayingLine +
+        (upcoming.length > 0
+          ? `**Up Next (${upcoming.length} song${upcoming.length !== 1 ? 's' : ''}):**\n${queueLines}` +
+            (upcoming.length > ITEMS_PER_PAGE ? `\n\n*...and ${upcoming.length - ITEMS_PER_PAGE} more.*` : '')
+          : '`No more songs queued.`')
       )
-      .setFooter({ text: `Community Zone • Multi-Room Music${upcoming.length > 10 ? ` • Showing 10 of ${upcoming.length} songs` : ''}` })
+      .setFooter({ text: `Community Zone • Music System • Dev by sejed.dev & akaza_senior` })
       .setTimestamp();
 
-    return interaction.editReply({ embeds: [embed] });
-  }
+    return interaction.reply({ embeds: [embed] });
+  },
 };

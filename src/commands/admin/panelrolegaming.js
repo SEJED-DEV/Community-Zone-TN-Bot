@@ -48,7 +48,8 @@ function buildGameRows() {
     currentRow.addComponents(
       new ButtonBuilder()
         .setCustomId(`game_role_${game.id}`)
-        .setLabel(`${game.emoji} ${game.label}`)
+        .setLabel(game.label)
+        .setEmoji(game.emoji)
         .setStyle(game.style)
     );
   }
@@ -89,7 +90,7 @@ function buildPanelEmbed(guild) {
     .setThumbnail(guild?.iconURL({ dynamic: true }) ?? null)
     .setTimestamp()
     .setFooter({
-      text: 'Community Zone • Dev by Akaza_senior',
+      text: 'Community Zone • Dev by sejed.dev & akaza_senior',
       iconURL: guild?.iconURL({ dynamic: true }) ?? undefined,
     });
 }
@@ -123,6 +124,7 @@ module.exports = {
   async execute(client, interaction) {
     await interaction.deferReply({ ephemeral: true });
     const sub = interaction.options.getSubcommand();
+    const { getSafeEmoji } = require('../../utils/emojiHelper');
 
     // ── /panelrolegaming status ────────────────────────────
     if (sub === 'status') {
@@ -133,12 +135,12 @@ module.exports = {
 
       const embed = new EmbedBuilder()
         .setColor(0x8B5CF6)
-        .setTitle('🎮 Gaming Role Panel Status | حالة لوحة الألعاب')
+        .setTitle(`${getSafeEmoji('online', client, false)} Gaming Role Panel Status | حالة لوحة الألعاب`)
         .addFields(
-          { name: '📣 Panel Channel | قناة اللوحة', value: channelStr, inline: false },
+          { name: `${getSafeEmoji('member', client, false)} Panel Channel | قناة اللوحة`, value: channelStr, inline: false },
           { name: '🕹️ Total Games | عدد الألعاب', value: `\`${GAMES.length}\` games configured`, inline: false }
         )
-        .setFooter({ text: 'Community Zone • Dev by Akaza_senior' })
+        .setFooter({ text: 'Community Zone • Dev by sejed.dev & akaza_senior' })
         .setTimestamp();
 
       return interaction.editReply({ embeds: [embed] });
@@ -158,13 +160,13 @@ module.exports = {
         embeds: [
           new EmbedBuilder()
             .setColor(0x10B981)
-            .setTitle('✅ Gaming Role Panel Deployed | تم نشر لوحة الألعاب')
+            .setTitle(`${getSafeEmoji('success', client, false)} Gaming Role Panel Deployed | تم نشر لوحة الألعاب`)
             .setDescription(
               `The Gaming Role Panel has been sent to ${channel}.\n` +
               `تم إرسال لوحة أدوار الألعاب إلى ${channel}.\n\n` +
               `🎮 **${GAMES.length} games** are available for self-assignment.`
             )
-            .setFooter({ text: 'Community Zone • Dev by Akaza_senior' })
+            .setFooter({ text: 'Community Zone • Dev by sejed.dev & akaza_senior' })
             .setTimestamp(),
         ],
       });

@@ -32,13 +32,8 @@ module.exports = {
     const categoryId = config.tempCategoryId;
 
     // Proactive / Failsafe Nickname Restoration:
-    // If the member is not in a temporary voice channel, ensure their name is restored to original state.
-    const isInTempVoice = newState.channelId && (
-      tempVoiceManager.getRoomByVoiceId(newState.channelId) ||
-      (categoryId && newState.channel && newState.channel.parentId === categoryId && newState.channelId !== triggerId)
-    );
-
-    if (!isInTempVoice) {
+    // If the member is not in ANY voice channel, ensure their name is restored to original state.
+    if (!newState.channelId) {
       await emojiHelper.restoreOriginalNickname(member);
     }
 
@@ -382,13 +377,45 @@ module.exports = {
     }
   }
 
-    // Check if the user JOINED a temporary channel
-    if (newState.channelId && tempVoiceManager.getRoomByVoiceId(newState.channelId)) {
+    // Check if the user JOINED a voice channel
+    if (newState.channelId) {
       const voiceId = newState.channelId;
       const room = tempVoiceManager.getRoomByVoiceId(voiceId);
       const voiceChannel = newState.channel || await newState.guild.channels.fetch(voiceId).catch(() => null);
 
+      if (voiceChannel) {
+        // Synchronize server nickname with the channel's emoji prefix (ALL channels)
+        const emoji = emojiHelper.getChannelEmoji(voiceChannel.name);
+        if (emoji) {
+          await emojiHelper.applyUserNicknameEmoji(member, emoji);
+        }
+      }
+
       if (room && voiceChannel) {
+        // ── Dispute Feature ──
+        const disputeManager = require('../../managers/disputeManager');
+        const channelMembers = voiceChannel.members.filter(m => m.id !== member.id && !m.user.bot);
+        const hasDispute = channelMembers.some(m => disputeManager.isInDispute(member.id, m.id));
+
+        if (hasDispute) {
+          try {
+            await member.voice.disconnect('Dispute detected in voice channel');
+            const disputeEmbed = embedGenerator.error(
+              'You cannot join this room because you are in a dispute with someone already inside.\n' +
+              'لا يمكنك الانضمام لهذه الغرفة لوجود شخص بينك وبينه نزاع (Dispute).',
+              '⚖️ Dispute Detected'
+            );
+            await member.send({ embeds: [disputeEmbed] }).catch(() => null);
+            await logger.warning(client, 'Dispute Join Prevented', [
+              { name: 'User', value: `${member.user.tag} (<@${member.id}>)` },
+              { name: 'Voice Channel', value: `${voiceChannel.name}` }
+            ]);
+          } catch (e) {
+            console.error('[VOICE UPDATE] Error handling dispute join:', e);
+          }
+          return;
+        }
+
         // Cancel any pending deletion timeout
         if (tempVoiceManager.cancelDeletion(voiceId)) {
           console.log(`[TEMP VOICE] Deletion cancelled — ${member.user.tag} rejoined ${voiceChannel.name}.`);
@@ -445,11 +472,6 @@ module.exports = {
           return;
         }
 
-        // Synchronize server nickname with the channel's emoji prefix
-        const emoji = emojiHelper.getChannelEmoji(voiceChannel.name);
-        if (emoji) {
-          await emojiHelper.applyUserNicknameEmoji(member, emoji);
-        }
 
         // Re-update the voice dashboard to reflect updated member count
         if (room.voiceDashboardMessageId) {

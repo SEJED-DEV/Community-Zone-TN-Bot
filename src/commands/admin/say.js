@@ -70,7 +70,27 @@ module.exports = {
           payload.files = [attachment.url];
         }
 
-        await channel.send(payload);
+        const sentMessage = await channel.send(payload);
+
+        // Logging Usage to 1511291628273537114
+        const SAY_LOG_CHANNEL_ID = '1511291628273537114';
+        const logChannel = await interaction.guild.channels.fetch(SAY_LOG_CHANNEL_ID).catch(() => null);
+        if (logChannel) {
+          const { EmbedBuilder } = require('discord.js');
+          const logEmbed = new EmbedBuilder()
+            .setTitle('📢 Say Command Log')
+            .setColor(0x6366F1)
+            .addFields(
+              { name: '👮 Moderator', value: `<@${interaction.user.id}> (\`${interaction.user.tag}\`)`, inline: true },
+              { name: '📁 Channel', value: `${channel} (<#${channel.id}>)`, inline: true },
+              { name: '📝 Content', value: content.length > 1024 ? content.slice(0, 1021) + '...' : content }
+            )
+            .setTimestamp();
+          if (attachment) {
+            logEmbed.addFields({ name: '📎 Attachment', value: `[Link](${attachment.url})` });
+          }
+          await logChannel.send({ embeds: [logEmbed] });
+        }
 
         await submitted.reply({
           content: `✅ Message successfully sent to ${channel}!`,
