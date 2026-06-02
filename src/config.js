@@ -31,6 +31,48 @@ module.exports = {
   kickChannelId: savedSettings.kickChannelId || null,
   timeoutChannelId: savedSettings.timeoutChannelId || null,
   warnChannelId: savedSettings.warnChannelId || '1510778134205829120',
+
+  // Advanced Logging Channels
+  logChannels: {
+    roleCreated: '1509047421446000670',
+    roleDeleted: '1509047553977483304',
+    roleGiven: '1509047834891260055',
+    roleUpdated: '1509048058682277918',
+    roleRemoved: '1509048778785558568',
+    channelCreated: '1509047352193847326',
+    channelUpdated: '1509047931398000721',
+    channelDeleted: '1509047456099336214',
+    channelPermissionsUpdated: '1509048021990506637',
+    messageEdited: '1509047592108167331',
+    messageDeleted: '1509047522293977149',
+    threadCreated: '1509047389850177596',
+    threadDeleted: '1509047491830485103',
+    threadUpdated: '1509047986775396383',
+    nicknameChanged: '1509047758131171439',
+    timeoutGivenRemoved: '1509047303074484244',
+    moderationCommandUsed: '1509047798769651843',
+    voiceStateMuteDeafen: '1509048197740363848',
+    serversInvites: '1509048581615652914',
+    memberBanned: '1509047244933042337',
+    memberUnbanned: '1509047889945432124',
+    memberKicked: '1509047624672608306',
+    memberJoined: '1509047673662083113',
+    memberLeft: '1509047715755983038',
+    memberJoinedVoiceChannel: '1509048110121488544',
+    memberLeftVoiceChannel: '1509048149358940230',
+    memberSwitchedVoice: '1509048231932203049',
+    inviteLogger: '1509043266438561902'
+  },
+
+  // Verification System Configuration
+  verification: {
+    triggerChannels: savedSettings.verifyTriggerChannels || [], // IDs of voice channels x, y, z
+    logChannel: '1509043266438561902', // Channel N
+    staffRole: savedSettings.verifyStaffRole || null,
+    maleRole: savedSettings.verifyMaleRole || null,
+    femaleRole: savedSettings.verifyFemaleRole || null
+  },
+
   levelUpChannelId: savedSettings.levelUpChannelId || (process.env.LEVEL_UP_CHANNEL_ID && process.env.LEVEL_UP_CHANNEL_ID !== 'YOUR_LEVEL_UP_CHANNEL_ID_HERE' ? process.env.LEVEL_UP_CHANNEL_ID : null),
   levelingEnabled: savedSettings.levelingEnabled !== false,
   nicknamePanelChannelId: savedSettings.nicknamePanelChannelId || null,

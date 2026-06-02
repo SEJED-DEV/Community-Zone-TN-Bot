@@ -1,94 +1,106 @@
+const { AuditLogEvent } = require('discord.js');
 const config = require('../../config');
 const logger = require('../../utils/logger');
 
 module.exports = {
   name: 'guildMemberUpdate',
   once: false,
-  async execute(client, oldMember, newMember) {
-    const fields = [
-      { name: '👤 Member', value: `${newMember.user.tag} (<@${newMember.id}>)`, inline: true },
-      { name: '🆔 User ID', value: `\`${newMember.id}\``, inline: true }
-    ];
+  async execute(client, oldMember, newRoleMember) {
+    const guild = newRoleMember.guild;
 
-    let actionTitle = '';
-    let shouldLog = false;
+    // 1. Role Changes
+    const addedRoles = newRoleMember.roles.cache.filter(role => !oldMember.roles.cache.has(role.id));
+    const removedRoles = oldMember.roles.cache.filter(role => !newRoleMember.roles.cache.has(role.id));
 
-    // ----------------------------------------
-    // 1. Role Change Logging
-    // ----------------------------------------
-    const oldRoles = oldMember.roles.cache;
-    const newRoles = newMember.roles.cache;
+    if (addedRoles.size > 0) {
+      let executor = 'Unknown';
+      try {
+        const auditLogs = await guild.fetchAuditLogs({ limit: 1, type: AuditLogEvent.MemberRoleUpdate });
+        const entry = auditLogs.entries.first();
+        if (entry && (Date.now() - entry.createdTimestamp < 5000) && entry.target.id === newRoleMember.id) {
+          executor = entry.executor;
+        }
+      } catch (e) {}
 
-    if (oldRoles.size !== newRoles.size) {
-      const addedRoles = newRoles.filter(role => !oldRoles.has(role.id));
-      const removedRoles = oldRoles.filter(role => !newRoles.has(role.id));
-
-      if (addedRoles.size > 0) {
-        actionTitle = '🎭 Roles Added';
-        fields.push({
-          name: '➕ Added Roles',
-          value: addedRoles.map(role => `<@&${role.id}> (${role.name})`).join('\n'),
-          inline: false
-        });
-        shouldLog = true;
-      }
-
-      if (removedRoles.size > 0) {
-        actionTitle = '🎭 Roles Removed';
-        fields.push({
-          name: '➖ Removed Roles',
-          value: removedRoles.map(role => `<@&${role.id}> (${role.name})`).join('\n'),
-          inline: false
-        });
-        shouldLog = true;
+      for (const [id, role] of addedRoles) {
+        const fields = [
+          { name: 'Member', value: `<@${newRoleMember.id}> (\`${newRoleMember.user.tag}\`)`, inline: true },
+          { name: 'Role Given', value: `<@&${role.id}> (\`${role.name}\`)`, inline: true },
+          { name: 'Executor', value: executor.tag || executor, inline: false }
+        ];
+        await logger.success(client, '➕ Role Given', fields, config.logChannels.roleGiven);
       }
     }
 
-    // ----------------------------------------
-    // 2. Timeout Change Logging
-    // ----------------------------------------
-    const oldTimeout = oldMember.communicationDisabledUntil;
-    const newTimeout = newMember.communicationDisabledUntil;
+    if (removedRoles.size > 0) {
+      let executor = 'Unknown';
+      try {
+        const auditLogs = await guild.fetchAuditLogs({ limit: 1, type: AuditLogEvent.MemberRoleUpdate });
+        const entry = auditLogs.entries.first();
+        if (entry && (Date.now() - entry.createdTimestamp < 5000) && entry.target.id === newRoleMember.id) {
+          executor = entry.executor;
+        }
+      } catch (e) {}
+
+      for (const [id, role] of removedRoles) {
+        const fields = [
+          { name: 'Member', value: `<@${newRoleMember.id}> (\`${newRoleMember.user.tag}\`)`, inline: true },
+          { name: 'Role Removed', value: `<@&${role.id}> (\`${role.name}\`)`, inline: true },
+          { name: 'Executor', value: executor.tag || executor, inline: false }
+        ];
+        await logger.error(client, '➖ Role Removed', fields, config.logChannels.roleRemoved);
+      }
+    }
+
+    // 2. Nickname Changes
+    if (oldMember.nickname !== newRoleMember.nickname) {
+      let executor = 'Unknown';
+      try {
+        const auditLogs = await guild.fetchAuditLogs({ limit: 1, type: AuditLogEvent.MemberUpdate });
+        const entry = auditLogs.entries.first();
+        if (entry && (Date.now() - entry.createdTimestamp < 5000) && entry.target.id === newRoleMember.id) {
+          executor = entry.executor;
+        }
+      } catch (e) {}
+
+      const fields = [
+        { name: 'Member', value: `<@${newRoleMember.id}>`, inline: true },
+        { name: 'Old Nickname', value: oldMember.nickname || 'None', inline: true },
+        { name: 'New Nickname', value: newRoleMember.nickname || 'None', inline: true },
+        { name: 'Executor', value: executor.tag || executor, inline: false }
+      ];
+      await logger.info(client, '🏷️ Nickname Changed', fields, config.logChannels.nicknameChanged);
+    }
+
+    // 3. Timeout Changes
+    const oldTimeout = oldMember.communicationDisabledUntilTimestamp;
+    const newTimeout = newRoleMember.communicationDisabledUntilTimestamp;
 
     if (oldTimeout !== newTimeout) {
-      if (newTimeout) {
-        actionTitle = '⏳ Member Timed Out';
-        const timeoutTimestamp = Math.floor(newTimeout.getTime() / 1000);
-        fields.push({
-          name: '⏰ Timeout Expiration',
-          value: `<t:${timeoutTimestamp}:F> (<t:${timeoutTimestamp}:R>)`,
-          inline: false
-        });
-        shouldLog = true;
-      } else {
-        actionTitle = '⏳ Member Timeout Removed';
-        fields.push({
-          name: '⏰ Expiration Status',
-          value: 'Timeout lifted by moderator / expired.',
-          inline: false
-        });
-        shouldLog = true;
+      let executor = 'Unknown';
+      try {
+        const auditLogs = await guild.fetchAuditLogs({ limit: 1, type: AuditLogEvent.MemberUpdate });
+        const entry = auditLogs.entries.find(e => e.target.id === newRoleMember.id && e.changes.some(c => c.key === 'communication_disabled_until'));
+        if (entry && (Date.now() - entry.createdTimestamp < 5000)) {
+          executor = entry.executor;
+        }
+      } catch (e) {}
+
+      if (newTimeout && (!oldTimeout || newTimeout > oldTimeout)) {
+        const fields = [
+          { name: 'Member', value: `<@${newRoleMember.id}>`, inline: true },
+          { name: 'Duration', value: `<t:${Math.floor(newTimeout / 1000)}:R>`, inline: true },
+          { name: 'Executor', value: executor.tag || executor, inline: false }
+        ];
+        await logger.warning(client, '⏰ Timeout Given', fields, config.logChannels.timeoutGivenRemoved);
+      } else if (!newTimeout && oldTimeout) {
+        const fields = [
+          { name: 'Member', value: `<@${newRoleMember.id}>`, inline: true },
+          { name: 'Status', value: 'Timeout Removed', inline: true },
+          { name: 'Executor', value: executor.tag || executor, inline: false }
+        ];
+        await logger.success(client, '🛡️ Timeout Removed', fields, config.logChannels.timeoutGivenRemoved);
       }
-    }
-
-    // ----------------------------------------
-    // 3. Nickname Change Logging
-    // ----------------------------------------
-    if (oldMember.nickname !== newMember.nickname) {
-      actionTitle = '✏️ Nickname Changed';
-      fields.push({ name: 'Before nickname', value: oldMember.nickname ? `\`${oldMember.nickname}\`` : '*No Nickname*', inline: true });
-      fields.push({ name: 'After nickname', value: newMember.nickname ? `\`${newMember.nickname}\`` : '*No Nickname*', inline: true });
-      shouldLog = true;
-    }
-
-    if (shouldLog) {
-      await logger.log(
-        client,
-        actionTitle,
-        fields,
-        config.colors.logging.roles,
-        newMember.user.displayAvatarURL({ dynamic: true })
-      );
     }
   }
 };

@@ -3,6 +3,7 @@ const commandHandler = require('../../handlers/command');
 const levelingManager = require('../../managers/levelingManager');
 const musicEvents = require('../../utils/musicEvents');
 const config = require('../../config');
+const inviteTracker = require('../../managers/inviteTracker');
 
 module.exports = {
   name: 'ready',
@@ -49,6 +50,13 @@ module.exports = {
       levelingManager.startVoiceXpTicker(client);
     } catch (err) {
       console.error('[READY EVENT] Failed to start Voice XP ticker:', err);
+    }
+
+    // Initialize Invite Tracker
+    try {
+      await inviteTracker.init(client);
+    } catch (err) {
+      console.error('[READY EVENT] Failed to initialize invite tracker:', err);
     }
 
     // Register music player event listeners (Now Playing embeds, queue end notices)

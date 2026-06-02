@@ -143,6 +143,22 @@ module.exports = {
       console.log(`[MUSIC] Player closed in guild ${player.guildId}.`);
     });
 
+    // ── Queue Empty (Auto-disconnect) ──────────────────────────
+    kazagumo.on('playerEmpty', (player) => {
+      const voiceId = player.voiceId;
+      console.log(`[MUSIC] Queue empty in voice channel ${voiceId}. Starting idle timer (3 min)...`);
+      // Auto-disconnect after 3 minutes of inactivity
+      setTimeout(() => {
+        const kazagumoInstance = musicManager.getKazagumo();
+        const p = kazagumoInstance.players.get(player.guildId);
+        // Only destroy if it belongs to this voiceId and is still empty/not playing
+        if (p && p.voiceId === voiceId && p.queue.isEmpty && !p.playing) {
+          p.destroy();
+          console.log(`[MUSIC] Auto-disconnected from voice channel ${voiceId} (idle timeout).`);
+        }
+      }, 180_000);
+    });
+
     console.log('[MUSIC EVENTS] Lavalink event listeners registered.');
   }
 };

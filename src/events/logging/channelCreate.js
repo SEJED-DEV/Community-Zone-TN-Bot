@@ -1,41 +1,30 @@
-const { ChannelType } = require('discord.js');
+const { AuditLogEvent } = require('discord.js');
 const config = require('../../config');
 const logger = require('../../utils/logger');
-
-// Helper to convert ChannelType to human-readable string
-function getChannelTypeName(type) {
-  switch (type) {
-    case ChannelType.GuildText: return '📝 Text Channel';
-    case ChannelType.GuildVoice: return '🔊 Voice Channel';
-    case ChannelType.GuildCategory: return '📁 Category';
-    case ChannelType.GuildAnnouncement: return '📢 Announcement Channel';
-    case ChannelType.GuildStageVoice: return '🎭 Stage Channel';
-    case ChannelType.GuildForum: return '💬 Forum Channel';
-    default: return '❓ Unknown';
-  }
-}
 
 module.exports = {
   name: 'channelCreate',
   once: false,
   async execute(client, channel) {
-    if (!channel.guild) return; // Only log guild channels
+    if (!channel.guild) return;
+    const guild = channel.guild;
+    const logChannelId = config.logChannels.channelCreated;
+
+    let executor = 'Unknown';
+    try {
+      const auditLogs = await guild.fetchAuditLogs({ limit: 1, type: AuditLogEvent.ChannelCreate });
+      const entry = auditLogs.entries.first();
+      if (entry && (Date.now() - entry.createdTimestamp < 5000)) {
+        executor = entry.executor;
+      }
+    } catch (e) {}
 
     const fields = [
-      { name: '📁 Channel Name', value: `${channel.name} (<#${channel.id}>)`, inline: true },
-      { name: '🆔 Channel ID', value: `\`${channel.id}\``, inline: true },
-      { name: '🛠️ Channel Type', value: getChannelTypeName(channel.type), inline: true }
+      { name: 'Channel', value: `<#${channel.id}> (\`${channel.name}\`)`, inline: true },
+      { name: 'Type', value: channel.type.toString(), inline: true },
+      { name: 'Executor', value: executor.tag || executor, inline: false }
     ];
 
-    if (channel.parent) {
-      fields.push({ name: '📁 Category Parent', value: `${channel.parent.name} (\`${channel.parentId}\`)`, inline: false });
-    }
-
-    await logger.log(
-      client,
-      '🆕 Channel Created',
-      fields,
-      config.colors.logging.channel
-    );
+    await logger.success(client, '📁 Channel Created', fields, logChannelId);
   }
 };

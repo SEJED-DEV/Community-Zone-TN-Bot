@@ -18,6 +18,12 @@ const LAVALINK_NODES = [
     url: 'lavalink.jirayu.net:13592',
     auth: 'youshallnotpass',
     secure: false
+  },
+  {
+    name: 'Kronix-1',
+    url: 'lavalink.kronix.me:443',
+    auth: 'youshallnotpass',
+    secure: true
   }
 ];
 
@@ -44,43 +50,8 @@ function init(client) {
   );
 
   // ── Player Events ──────────────────────────────────────────────────────────
-
-  kazagumo.on('playerStart', (player, track) => {
-    const voiceId = player.voiceId;
-    console.log(`[MUSIC] ▶️  Now playing: "${track.title}" in voice channel ${voiceId}`);
-  });
-
-  kazagumo.on('playerEnd', (player) => {
-    // Kazagumo handles queue advancement automatically
-  });
-
-  kazagumo.on('playerEmpty', (player) => {
-    const voiceId = player.voiceId;
-    console.log(`[MUSIC] Queue empty in voice channel ${voiceId}. Starting idle timer (3 min)...`);
-    // Auto-disconnect after 3 minutes of inactivity
-    setTimeout(() => {
-      const p = voicePlayers.get(voiceId);
-      if (p && p.queue.isEmpty && !p.playing) {
-        p.destroy();
-        voicePlayers.delete(voiceId);
-        console.log(`[MUSIC] Auto-disconnected from voice channel ${voiceId} (idle timeout).`);
-      }
-    }, 180_000);
-  });
-
-  kazagumo.on('playerError', (player, track, error) => {
-    console.error(`[MUSIC ERROR] "${track?.title}" in voice ${player.voiceId}:`, error?.message || error);
-  });
-
-  kazagumo.on('playerClosed', (player) => {
-    const voiceId = player.voiceId;
-    voicePlayers.delete(voiceId);
-    console.log(`[MUSIC] Player closed and removed for voice channel ${voiceId}.`);
-  });
-
-  kazagumo.on('playerDestroy', (player) => {
-    voicePlayers.delete(player.voiceId);
-  });
+  // Note: Detailed event handling (like sending embeds) is done in src/utils/musicEvents.js
+  // to keep the manager focused on core logic and avoid double-execution.
 
   // ── Node Events ────────────────────────────────────────────────────────────
 
