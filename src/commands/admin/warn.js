@@ -252,7 +252,7 @@ module.exports = {
             { name: 'Target', value: `${targetUser.tag} (\`${targetUser.id}\`)` },
             { name: 'Moderator', value: `${interaction.user.tag}` },
             { name: 'Reason', value: reason }
-          ]);
+          ], config.logChannels.moderationCommandUsed);
 
           // Update panel
           const updatedPanel = await generatePanel(guildId, targetUser, targetMember, isBanned);
@@ -323,7 +323,7 @@ module.exports = {
             { name: 'Target', value: `${targetUser.tag} (\`${targetUser.id}\`)` },
             { name: 'Moderator', value: `${interaction.user.tag}` },
             { name: 'Reason', value: reason }
-          ]);
+          ], config.logChannels.moderationCommandUsed);
 
           // Update panel
           const updatedPanel = await generatePanel(guildId, targetUser, targetMember, isBanned);
@@ -425,7 +425,7 @@ module.exports = {
               { name: 'Moderator', value: `${interaction.user.tag}` },
               { name: 'Duration', value: durationStr },
               { name: 'Reason', value: reason }
-            ]);
+            ], config.logChannels.moderationCommandUsed);
 
             await interaction.followUp({
               embeds: [embedGenerator.success(`Timed out **${targetUser.tag}** for **${durationStr}**.\nReason: \`${reason}\``)],
@@ -524,7 +524,7 @@ module.exports = {
               { name: 'Target', value: `${targetUser.tag} (\`${targetUser.id}\`)` },
               { name: 'Moderator', value: `${interaction.user.tag}` },
               { name: 'Reason', value: reason }
-            ]);
+            ], config.logChannels.moderationCommandUsed);
 
             await interaction.followUp({
               embeds: [embedGenerator.success(`Kicked **${targetUser.tag}**.\nReason: \`${reason}\``)],
@@ -579,7 +579,7 @@ module.exports = {
               { name: 'Target', value: `${targetUser.tag} (\`${targetUser.id}\`)` },
               { name: 'Moderator', value: `${interaction.user.tag}` },
               { name: 'Reason', value: reason }
-            ]);
+            ], config.logChannels.moderationCommandUsed);
 
             await interaction.followUp({
               embeds: [embedGenerator.success(`Unbanned **${targetUser.tag}**.\nReason: \`${reason}\``)],
@@ -684,7 +684,7 @@ module.exports = {
               { name: 'Target', value: `${targetUser.tag} (\`${targetUser.id}\`)` },
               { name: 'Moderator', value: `${interaction.user.tag}` },
               { name: 'Reason', value: reason }
-            ]);
+            ], config.logChannels.moderationCommandUsed);
 
             await interaction.followUp({
               embeds: [embedGenerator.success(`Banned **${targetUser.tag}**.\nReason: \`${reason}\``)],

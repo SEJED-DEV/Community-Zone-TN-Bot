@@ -5,29 +5,20 @@ module.exports = {
   name: 'messageDelete',
   once: false,
   async execute(client, message) {
-    if (message.partial) return; // Ignore uncached messages to prevent crash/incomplete logs
-    if (!message.author || message.author.bot) return; // Ignore bot deleted messages
+    if (!message.guild || message.author?.bot) return;
 
-    const attachments = message.attachments.size > 0 
-      ? message.attachments.map(att => `[${att.name}](${att.url})`).join('\n') 
-      : 'None';
+    const logChannelId = config.logChannels.messageDeleted;
 
     const fields = [
-      { name: '👤 Author', value: `${message.author.tag} (<@${message.author.id}>)`, inline: true },
-      { name: '📁 Channel', value: `<#${message.channelId}> (\`#${message.channel.name}\`)`, inline: true },
-      { name: '📝 Deleted Content', value: message.content ? `\`\`\`${message.content.substring(0, 1000)}\`\`\`` : '*No text content (possibly an embed or attachment)*', inline: false }
+      { name: 'Author', value: `<@${message.author.id}>`, inline: true },
+      { name: 'Channel', value: `<#${message.channelId}>`, inline: true },
+      { name: 'Content', value: message.content || '*(No content)*', inline: false }
     ];
 
     if (message.attachments.size > 0) {
-      fields.push({ name: '📎 Attachments', value: attachments, inline: false });
+      fields.push({ name: 'Attachments', value: message.attachments.map(a => a.url).join('\n'), inline: false });
     }
 
-    await logger.log(
-      client,
-      '🗑️ Message Deleted',
-      fields,
-      config.colors.logging.messageDelete,
-      message.author.displayAvatarURL({ dynamic: true })
-    );
+    await logger.error(client, '🗑️ Message Deleted', fields, logChannelId);
   }
 };

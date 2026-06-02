@@ -5,19 +5,13 @@ module.exports = {
   name: 'guildBanRemove',
   once: false,
   async execute(client, ban) {
-    const user = ban.user;
+    const logChannelId = config.logChannels.memberUnbanned;
 
     const fields = [
-      { name: '👤 User Unbanned', value: `${user.tag} (<@${user.id}>)`, inline: true },
-      { name: '🆔 User ID', value: `\`${user.id}\``, inline: true }
+      { name: 'User', value: `<@${ban.user.id}> (\`${ban.user.tag}\`)`, inline: true },
+      { name: 'User ID', value: `\`${ban.user.id}\``, inline: true }
     ];
 
-    await logger.log(
-      client,
-      '🔓 Member Ban Lifted',
-      fields,
-      config.colors.logging.moderation,
-      user.displayAvatarURL({ dynamic: true })
-    );
+    await logger.success(client, '🔓 Member Unbanned', fields, logChannelId);
   }
 };

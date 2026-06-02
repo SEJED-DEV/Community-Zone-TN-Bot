@@ -138,7 +138,7 @@ module.exports = {
       { name: 'Banned By',         value: `${interaction.user.tag} (<@${interaction.user.id}>)` },
       { name: 'Reason',            value: reason },
       { name: 'Messages Deleted',  value: `${deleteDays} day(s)` },
-    ]);
+    ], config.logChannels.moderationCommandUsed);
 
     // ── Confirm to executor ───────────────────────────────────────────────────
     const confirmEmbed = new EmbedBuilder()

@@ -184,6 +184,71 @@ module.exports = {
     }
 
     // ==========================================
+    // VERIFICATION SYSTEM ROUTING (BUTTONS)
+    // ==========================================
+    if (interaction.isButton() && customId.startsWith('verify_')) {
+      const parts = customId.split('_');
+      const action = parts[1]; // claim, male, female
+      const targetUserId = parts[2];
+
+      const staffRoleId = config.verification.staffRole;
+      if (staffRoleId && !interaction.member.roles.cache.has(staffRoleId) && !interaction.member.permissions.has(PermissionFlagsBits.Administrator)) {
+        return interaction.reply({ content: '❌ You are not authorized to use this button.', ephemeral: true });
+      }
+
+      if (action === 'claim') {
+        const embed = EmbedBuilder.from(interaction.message.embeds[0])
+          .addFields({ name: 'Claimed By', value: `<@${interaction.user.id}>`, inline: true })
+          .setColor(0xF59E0B);
+
+        const row = new ActionRowBuilder().addComponents(
+          new ButtonBuilder()
+            .setCustomId(`verify_male_${targetUserId}`)
+            .setLabel('Male')
+            .setEmoji('👨')
+            .setStyle(ButtonStyle.Success),
+          new ButtonBuilder()
+            .setCustomId(`verify_female_${targetUserId}`)
+            .setLabel('Female')
+            .setEmoji('👩')
+            .setStyle(ButtonStyle.Success)
+        );
+
+        await interaction.update({ embeds: [embed], components: [row] });
+      }
+
+      else if (action === 'male' || action === 'female') {
+        const targetMember = await interaction.guild.members.fetch(targetUserId).catch(() => null);
+        if (!targetMember) {
+          return interaction.reply({ content: '❌ Could not find that member in the server.', ephemeral: true });
+        }
+
+        const roleId = action === 'male' ? config.verification.maleRole : config.verification.femaleRole;
+        if (!roleId) {
+          return interaction.reply({ content: '❌ This role has not been configured yet.', ephemeral: true });
+        }
+
+        try {
+          await targetMember.roles.add(roleId, `Verification completed by ${interaction.user.tag}`);
+
+          const embed = EmbedBuilder.from(interaction.message.embeds[0])
+            .addFields({ name: 'Verified As', value: action === 'male' ? '👨 Male' : '👩 Female', inline: true })
+            .setColor(0x10B981);
+
+          await interaction.update({ embeds: [embed], components: [] });
+
+          // Optional: DM the user
+          await targetMember.send(`✅ You have been verified as **${action}** in **${interaction.guild.name}**!`).catch(() => null);
+
+        } catch (err) {
+          console.error('[VERIFICATION ERROR]', err);
+          await interaction.reply({ content: `❌ Failed to assign role: ${err.message}`, ephemeral: true });
+        }
+      }
+      return;
+    }
+
+    // ==========================================
     // 2. DASHBOARD SYSTEM ROUTING (BUTTONS, SELECT MENUS, MODALS)
     // ==========================================
     const customId = interaction.customId;
@@ -1478,7 +1543,7 @@ module.exports = {
         { name: 'Target', value: targetUser.tag + ' (`' + targetUser.id + '`)' },
         { name: 'Banned By', value: interaction.user.tag },
         { name: 'Reason', value: reason },
-      ]);
+      ], config.logChannels.moderationCommandUsed);
 
       return interaction.editReply({
         embeds: [
@@ -1577,7 +1642,7 @@ module.exports = {
         { name: 'Target', value: targetUser.tag + ' (`' + targetUser.id + '`)' },
         { name: 'Kicked By', value: interaction.user.tag },
         { name: 'Reason', value: reason },
-      ]);
+      ], config.logChannels.moderationCommandUsed);
 
       return interaction.editReply({
         embeds: [
@@ -1679,7 +1744,7 @@ module.exports = {
         { name: 'Duration', value: `${durationMinutes} minutes` },
         { name: 'Muted By', value: interaction.user.tag },
         { name: 'Reason', value: reason },
-      ]);
+      ], config.logChannels.moderationCommandUsed);
 
       return interaction.editReply({
         embeds: [
@@ -1743,7 +1808,7 @@ module.exports = {
         { name: 'Target ID', value: `\`${targetId}\`` },
         { name: 'Unbanned By', value: interaction.user.tag },
         { name: 'Reason', value: reason },
-      ]);
+      ], config.logChannels.moderationCommandUsed);
 
       return interaction.editReply({
         embeds: [
@@ -1829,7 +1894,7 @@ module.exports = {
         { name: 'Target', value: targetUser.tag + ' (`' + targetUser.id + '`)' },
         { name: 'Warned By', value: interaction.user.tag },
         { name: 'Reason', value: reason },
-      ]);
+      ], config.logChannels.moderationCommandUsed);
 
       return interaction.editReply({
         embeds: [

@@ -1,4 +1,4 @@
-const { PermissionFlagsBits, ChannelType, EmbedBuilder, ActionRowBuilder, StringSelectMenuBuilder } = require('discord.js');
+const { PermissionFlagsBits, ChannelType, EmbedBuilder, ActionRowBuilder, StringSelectMenuBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const config = require('../../config');
 const tempVoiceManager = require('../../managers/tempVoice');
 const restrictionManager = require('../../managers/restriction');
@@ -40,6 +40,40 @@ module.exports = {
 
     if (!isInTempVoice) {
       await emojiHelper.restoreOriginalNickname(member);
+    }
+
+    // ==========================================
+    // 0. VERIFICATION TRIGGER
+    // ==========================================
+    if (newState.channelId && config.verification.triggerChannels.includes(newState.channelId) && oldState.channelId !== newState.channelId) {
+      const logChannelId = config.verification.logChannel;
+      if (logChannelId) {
+        const logChannel = await newState.guild.channels.fetch(logChannelId).catch(() => null);
+        if (logChannel && logChannel.isTextBased()) {
+          const embed = new EmbedBuilder()
+            .setTitle('🛡️ User Awaiting Verification')
+            .setColor(0x6366F1)
+            .setThumbnail(member.user.displayAvatarURL({ dynamic: true }))
+            .addFields(
+              { name: '👤 Member', value: `${member.user.tag} (<@${member.id}>)`, inline: true },
+              { name: '🆔 User ID', value: `\`${member.id}\``, inline: true },
+              { name: '📅 Joined Discord', value: `<t:${Math.floor(member.user.createdTimestamp / 1000)}:F>`, inline: false },
+              { name: '📥 Joined Server', value: `<t:${Math.floor(member.joinedTimestamp / 1000)}:F>`, inline: false },
+              { name: '🔊 Trigger Channel', value: `<#${newState.channelId}>`, inline: true }
+            )
+            .setFooter({ text: 'Community Zone • Verification System' })
+            .setTimestamp();
+
+          const row = new ActionRowBuilder().addComponents(
+            new ButtonBuilder()
+              .setCustomId(`verify_claim_${member.id}`)
+              .setLabel('Claim')
+              .setStyle(ButtonStyle.Primary)
+          );
+
+          await logChannel.send({ embeds: [embed], components: [row] });
+        }
+      }
     }
 
     // ==========================================
