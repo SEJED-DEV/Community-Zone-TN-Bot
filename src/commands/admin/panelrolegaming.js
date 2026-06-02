@@ -10,7 +10,7 @@ const {
 const settingsManager = require('../../utils/settingsManager');
 
 // ============================================================
-// 🎮 GAMES CATALOGUE — exactly 12 entries
+// 🎮 GAMES CATALOGUE — exactly 14 entries
 // id    : must be unique, no spaces (used in Discord customId)
 // label : display name on the button
 // emoji : shown on the button label
@@ -18,18 +18,20 @@ const settingsManager = require('../../utils/settingsManager');
 //         Primary=blue, Secondary=grey)
 // ============================================================
 const GAMES = [
-  { id: 'valorant',     label: '𝐕𝐀𝐋𝐎𝐑𝐀𝐍𝐓',            emoji: '🎯', style: ButtonStyle.Danger    },
-  { id: 'gta',          label: '𝐆𝐓𝐀',                   emoji: '🚗', style: ButtonStyle.Secondary },
-  { id: 'among_us',     label: '𝐀𝐌𝐎𝐍𝐆 𝐔𝐒',             emoji: '👽', style: ButtonStyle.Primary   },
-  { id: 'fifa',         label: '𝐅𝐈𝐅𝐀',                  emoji: '⚽', style: ButtonStyle.Success   },
-  { id: 'pes',          label: '𝐏𝐄𝐒',                   emoji: '🏆', style: ButtonStyle.Success   },
-  { id: 'free_fire',    label: '𝐅𝐑𝐄𝐄 𝐅𝐈𝐑𝐄',             emoji: '🔫', style: ButtonStyle.Danger    },
-  { id: 'bloodstrike',  label: '𝐁𝐋𝐎𝐎𝐃𝐒𝐓𝐑𝐈𝐊𝐄',           emoji: '💥', style: ButtonStyle.Danger    },
-  { id: 'stumble_guys', label: '𝐒𝐓𝐔𝐌𝐁𝐋𝐄 𝐆𝐔𝐘𝐒',           emoji: '🤸', style: ButtonStyle.Primary   },
-  { id: 'roblox',       label: '𝐑𝐎𝐁𝐋𝐎𝐗',                emoji: '🧱', style: ButtonStyle.Primary   },
-  { id: 'minecraft',    label: '𝐌𝐈𝐍𝐄𝐂𝐑𝐀𝐅𝐓',              emoji: '⛏️', style: ButtonStyle.Success   },
-  { id: 'lol',          label: '𝐋𝐄𝐀𝐆𝐔𝐄 𝐎𝐅 𝐋𝐄𝐆𝐄𝐍𝐃𝐒',      emoji: '⚔️', style: ButtonStyle.Danger    },
-  { id: 'other_games',  label: '𝐎𝐓𝐇𝐄𝐑 𝐆𝐀𝐌𝐄𝐒',            emoji: '🎮', style: ButtonStyle.Secondary },
+  { id: 'valorant',     label: 'Valorant',          emoji: '🎯', style: ButtonStyle.Danger    },
+  { id: 'gta',          label: 'GTA',               emoji: '🚗', style: ButtonStyle.Secondary },
+  { id: 'among_us',     label: 'Among Us',          emoji: '👽', style: ButtonStyle.Primary   },
+  { id: 'fifa',         label: 'FIFA',              emoji: '⚽', style: ButtonStyle.Success   },
+  { id: 'pes',          label: 'PES',               emoji: '🏆', style: ButtonStyle.Success   },
+  { id: 'free_fire',    label: 'Free Fire',         emoji: '🔫', style: ButtonStyle.Danger    },
+  { id: 'bloodstrike',  label: 'Bloodstrike',       emoji: '💥', style: ButtonStyle.Danger    },
+  { id: 'stumble_guys', label: 'Stumble Guys',      emoji: '🤸', style: ButtonStyle.Primary   },
+  { id: 'roblox',       label: 'Roblox',            emoji: '🧱', style: ButtonStyle.Primary   },
+  { id: 'minecraft',    label: 'Minecraft',         emoji: '⛏️', style: ButtonStyle.Success   },
+  { id: 'lol',          label: 'League of Legends', emoji: '⚔️', style: ButtonStyle.Danger    },
+  { id: 'brawlhalla',   label: 'Brawlhalla',        emoji: '🥊', style: ButtonStyle.Danger    },
+  { id: 'codenames',    label: 'Codenames',         emoji: '🕵️', style: ButtonStyle.Primary   },
+  { id: 'other_games',  label: 'Other Games',       emoji: '🎮', style: ButtonStyle.Secondary },
 ];
 
 // Build up to 5 ActionRows of up to 5 buttons each (Discord max = 25 buttons)

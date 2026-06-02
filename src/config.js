@@ -37,6 +37,7 @@ module.exports = {
   gameRolePanelChannelId: savedSettings.gameRolePanelChannelId || null,
   mrWhiteStatsChannelId: savedSettings.mrWhiteStatsChannelId || null,
   trackerLogChannelId: savedSettings.trackerLogChannelId || null,
+  confessChannelId: savedSettings.confessChannelId || null,
 
   // Premium visual customisation (Glassmorphic & Vibrant Palettes)
   colors: {

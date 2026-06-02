@@ -60,6 +60,7 @@ class SettingsManager {
       if (updated.serverTag !== undefined) config.serverTag = updated.serverTag;
       if (updated.mrWhiteStatsChannelId !== undefined) config.mrWhiteStatsChannelId = updated.mrWhiteStatsChannelId;
       if (updated.trackerLogChannelId !== undefined) config.trackerLogChannelId = updated.trackerLogChannelId;
+      if (updated.confessChannelId !== undefined) config.confessChannelId = updated.confessChannelId;
 
       console.log('[SETTINGS MANAGER] Settings saved and hot-reloaded successfully.');
       return true;
