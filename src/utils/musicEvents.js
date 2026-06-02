@@ -40,30 +40,29 @@ function buildNowPlayingEmbed(track, queueLength) {
  * Builds the music control buttons row.
  */
 const config = require('../config');
+const { getSafeEmoji } = require('./emojiHelper');
 
-function buildControlButtons() {
-  const getEmoji = (key) => config.emojis[key] || null;
-
+function buildControlButtons(client) {
   return new ActionRowBuilder().addComponents(
     new ButtonBuilder()
       .setCustomId('music_pause_resume')
       .setLabel('Pause / Resume')
-      .setEmoji(getEmoji('music_pause'))
+      .setEmoji(getSafeEmoji('music_pause', client, true))
       .setStyle(ButtonStyle.Secondary),
     new ButtonBuilder()
       .setCustomId('music_skip')
       .setLabel('Skip')
-      .setEmoji(getEmoji('music_skip'))
+      .setEmoji(getSafeEmoji('music_skip', client, true))
       .setStyle(ButtonStyle.Primary),
     new ButtonBuilder()
       .setCustomId('music_stop')
       .setLabel('Stop')
-      .setEmoji(getEmoji('music_stop'))
+      .setEmoji(getSafeEmoji('music_stop', client, true))
       .setStyle(ButtonStyle.Danger),
     new ButtonBuilder()
       .setCustomId('music_queue')
       .setLabel('Queue')
-      .setEmoji(getEmoji('music_queue'))
+      .setEmoji(getSafeEmoji('music_queue', client, true))
       .setStyle(ButtonStyle.Secondary),
   );
 }
@@ -87,7 +86,7 @@ module.exports = {
 
       try {
         const embed = buildNowPlayingEmbed(track, player.queue.size);
-        const controls = buildControlButtons();
+        const controls = buildControlButtons(client);
         await textChannel.send({ embeds: [embed], components: [controls] });
       } catch (err) {
         console.error(`[MUSIC EVENT] Failed to send now-playing embed in guild ${player.guildId}:`, err.message);

@@ -59,11 +59,19 @@ function getSafeEmoji(key, client, forButton = true) {
   const match = emojiStr.match(/<a?:([a-zA-Z0-9_]+):([0-9]+)>/);
   if (match) {
     const id = match[2];
-    // If client is provided, verify it exists in cache
-    if (client && client.emojis && client.emojis.cache.has(id)) {
-      return forButton ? id : emojiStr;
+
+    // Placeholder ID check
+    if (id === '123456789012345678') {
+      return FALLBACKS[key] || '❓';
     }
-    // User specifically requested to use placeholders if real emojis aren't available.
+
+    // If client is provided, verify it exists in cache
+    if (client && client.emojis && client.emojis.cache) {
+      if (!client.emojis.cache.has(id)) {
+        return FALLBACKS[key] || '❓';
+      }
+    }
+
     return forButton ? id : emojiStr;
   }
 
