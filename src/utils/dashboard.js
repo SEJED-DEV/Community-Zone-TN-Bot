@@ -69,6 +69,9 @@ class DashboardGenerator {
    */
   generateButtons(client) {
     const activeClient = client || this.client;
+    if (!activeClient) {
+      console.warn('[DASHBOARD] No client available for generateButtons, using fallbacks.');
+    }
     // Row 1: Actions related to basic status & settings
     const row1 = new ActionRowBuilder().addComponents(
       new ButtonBuilder()

@@ -24,29 +24,33 @@ class EmbedGenerator {
   /**
    * Generate a success Embed.
    */
-  success(description, title = `${getSafeEmoji('success', null, false)} Success`) {
-    return this.createBase(title, description, config.colors.success);
+  success(description, title) {
+    const finalTitle = title || `${getSafeEmoji('success', null, false)} Success`;
+    return this.createBase(finalTitle, description, config.colors.success);
   }
 
   /**
    * Generate an error/warning Embed.
    */
-  error(description, title = `${getSafeEmoji('error', null, false)} Error`) {
-    return this.createBase(title, description, config.colors.danger);
+  error(description, title) {
+    const finalTitle = title || `${getSafeEmoji('error', null, false)} Error`;
+    return this.createBase(finalTitle, description, config.colors.danger);
   }
 
   /**
    * Generate a warning Embed.
    */
-  warning(description, title = `${getSafeEmoji('warning', null, false)} Warning`) {
-    return this.createBase(title, description, config.colors.warning);
+  warning(description, title) {
+    const finalTitle = title || `${getSafeEmoji('warning', null, false)} Warning`;
+    return this.createBase(finalTitle, description, config.colors.warning);
   }
 
   /**
    * Generate an info Embed.
    */
-  info(description, title = `${getSafeEmoji('info', null, false)} System Information`) {
-    return this.createBase(title, description, config.colors.info);
+  info(description, title) {
+    const finalTitle = title || `${getSafeEmoji('info', null, false)} System Information`;
+    return this.createBase(finalTitle, description, config.colors.info);
   }
 
   /**
